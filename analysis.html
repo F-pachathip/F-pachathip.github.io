@@ -28,26 +28,67 @@
   <div class="content centered-content">
     <div class="card w-full">
       <h2 id="analysisTitle">Analyze a Sample</h2>
-      <p id="analysisDesc">Upload an image or capture from camera. Then enter the reagent you used. We'll detect the dominant color and estimate nitrate level.</p>
+      <p id="analysisDesc">
+        Upload an image or capture from camera. Then enter the reagent and scale. Choose ROI and sampling resolution. We'll detect the dominant color and estimate nitrate level.
+      </p>
 
+      <!-- Controls -->
       <div class="controls">
         <input type="file" id="fileInput" accept="image/*">
         <button id="captureFromCamera">Capture from Camera</button>
         <button id="stopCamera" class="secondary">Stop Camera</button>
       </div>
 
+      <!-- Media / Canvas -->
       <div class="media-row">
         <video id="video" width="320" height="240" autoplay muted playsinline style="display:none;"></video>
-        <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+
+        <div class="canvas-wrap" id="canvasWrap" style="display:none;">
+          <canvas id="canvas" width="320" height="240"></canvas>
+          <canvas id="roiCanvas" width="320" height="240"></canvas>
+        </div>
+
         <img id="preview" alt="preview" style="display:none; max-width:320px; border-radius:8px;"/>
       </div>
 
-      <div class="inputs-row">
-        <input type="text" id="sampleInput" placeholder="Sample name (optional)">
-        <input type="text" id="reagentInput" placeholder="Enter reagent used">
-        <button id="saveResultBtn" class="secondary">Save Result</button>
+      <!-- Parameters -->
+      <div class="toolbar">
+        <div class="form-row">
+          <label for="sampleInput">Sample</label>
+          <input type="text" id="sampleInput" placeholder="Sample name (optional)">
+        </div>
+
+        <div class="form-row">
+          <label for="reagentInput">Reagent</label>
+          <input type="text" id="reagentInput" placeholder="Enter reagent used">
+        </div>
+
+        <div class="form-row">
+          <label for="scaleSelect">Scale</label>
+          <select id="scaleSelect"></select>
+          <button id="manageScalesBtn" class="secondary">Manage Scales</button>
+        </div>
+
+        <div class="form-row">
+          <span>ROI</span>
+          <label class="radio"><input type="radio" name="roiMode" value="full" checked> Full Image</label>
+          <label class="radio"><input type="radio" name="roiMode" value="center"> Center Crop</label>
+          <label class="radio"><input type="radio" name="roiMode" value="draw"> Draw Rect</label>
+        </div>
+
+        <div class="form-row">
+          <label for="sampleStep">Sampling step</label>
+          <input type="range" id="sampleStep" min="2" max="50" step="1" value="10">
+          <span id="sampleStepVal">10 px</span>
+        </div>
+
+        <div class="form-row">
+          <button id="analyzeBtn">Analyze</button>
+          <button id="saveResultBtn" class="secondary">Save Result</button>
+        </div>
       </div>
 
+      <!-- Results -->
       <div class="results-row">
         <div id="colorBox"></div>
         <div class="readouts">
@@ -59,6 +100,40 @@
   </div>
 
   <div class="footer">&copy; <span id="currentYear"></span> AI Color & Nitrate Detector. All Rights Reserved.</div>
+
+  <!-- Scale Manager Modal -->
+  <div class="modal-backdrop" id="scaleModalBackdrop" style="display:none;">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Manage Scales</h3>
+        <button id="closeScaleModal" class="icon-btn" title="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Built-in scales</strong> cannot be edited. You can add <em>Custom Scales</em> below. Format supports JSON or CSV:</p>
+        <ul class="mono">
+          <li>JSON: [{ "ppm": 0, "hex": "#FFF86A" }, { "ppm": 10, "hex": "#FFD24D" }, ...]</li>
+          <li>CSV: ppm,hex  (หนึ่งแถวต่อค่า) เช่น <code>0,#FFF86A</code></li>
+        </ul>
+        <div class="form-row">
+          <label for="customScaleName">Scale name</label>
+          <input id="customScaleName" placeholder="e.g. My Griess Scale">
+        </div>
+        <div class="form-row">
+          <label for="customScaleText">Data</label>
+          <textarea id="customScaleText" rows="6" placeholder='[{"ppm":0,"hex":"#FFF86A"},{"ppm":10,"hex":"#FFD24D"}]'></textarea>
+        </div>
+        <div class="form-row">
+          <button id="addScaleBtn">Add/Replace Scale</button>
+          <button id="exportScalesBtn" class="secondary">Export Custom Scales</button>
+          <button id="deleteScaleBtn" class="danger">Delete Scale</button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="closeScaleModal2">Close</button>
+      </div>
+    </div>
+  </div>
+
   <script src="script.js"></script>
 </body>
 </html>

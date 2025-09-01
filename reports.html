@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI Color & Nitrate Detector - Reports</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <div class="navbar">
@@ -32,9 +33,25 @@
         Use this information for quality control and trend analysis.
       </p>
 
+      <!-- Filters -->
+      <div class="toolbar">
+        <div class="form-row">
+          <label for="filterReagent">Reagent/Scale</label>
+          <select id="filterReagent"></select>
+        </div>
+        <div class="form-row">
+          <label for="filterSample">Sample</label>
+          <input id="filterSample" placeholder="Type to filter (optional)">
+        </div>
+        <div class="form-row">
+          <button id="applyFiltersBtn">Apply Filters</button>
+          <button id="resetFiltersBtn" class="secondary">Reset</button>
+        </div>
+      </div>
+
       <div class="card">
         <h2 id="detailedReportTitle">Detailed Report</h2>
-        <p id="detailedReportDesc">Download a CSV summary of recent analyses.</p>
+        <p id="detailedReportDesc">Download a CSV summary of filtered analyses.</p>
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
           <button id="downloadReportBtn">Download Report (CSV)</button>
           <button id="clearHistoryBtn" class="secondary">Clear History</button>
@@ -44,7 +61,10 @@
       <div class="card">
         <h2 id="historicalDataTitle">Historical Data</h2>
         <p id="historicalDataDesc">Review historical data to track changes over time.</p>
-        <div id="nitrateReports"></div>
+        <div class="chart-wrap">
+          <canvas id="trendChart" height="110"></canvas>
+        </div>
+        <div id="nitrateReports" style="margin-top:14px;"></div>
       </div>
     </div>
   </div>
