@@ -22,8 +22,8 @@ document.addEventListener("DOMContentLoaded", () => {
       CURRENT_LANG = isThai ? "th" : "en";
       applyLanguage(CURRENT_LANG);
       langBtn.textContent = isThai ? "English" : "ภาษาไทย";
-      if (document.getElementById("nitrateReports")) renderHistory(); // re-render table headers
-      if (document.getElementById("trendChart")) renderChart();       // re-render chart axes labels
+      if (document.getElementById("nitrateReports")) renderHistory();
+      if (document.getElementById("trendChart")) renderChart();
     });
   }
 
@@ -57,8 +57,6 @@ const i18n = {
     reagentPlaceholder: "Enter reagent used",
     saveResultBtnText: "Save Result",
     analyzeBtnText: "Analyze",
-    roiLabel: "ROI",
-    samplingLabel: "Sampling step",
 
     headerText_reports: "Reports and Nitrate Levels",
     reportsTitle: "Reports on Nitrate Levels",
@@ -73,9 +71,7 @@ const i18n = {
     colorValuePrefix: "Color: ",
     noHistoryText: "No history yet.",
     tableHeaders: ["Date", "Sample", "Reagent/Scale", "Color", "RGB", "Nitrate (ppm)"],
-    filters: { reagent: "Reagent/Scale", sample: "Sample", apply: "Apply Filters", reset: "Reset" },
-    scales: { manage: "Manage Scales", add: "Add/Replace Scale", export: "Export Custom Scales", del: "Delete Scale", close: "Close" },
-    roiFull: "Full Image", roiCenter: "Center Crop", roiDraw: "Draw Rect"
+    filters: { reagent: "Reagent/Scale", sample: "Sample", apply: "Apply Filters", reset: "Reset" }
   },
   th: {
     headerText_home: "ยินดีต้อนรับสู่ระบบตรวจจับสีและไนเตรตด้วย AI",
@@ -89,13 +85,11 @@ const i18n = {
 
     headerText_analysis: "การวิเคราะห์สีและไนเตรต",
     analysisTitle: "วิเคราะห์ตัวอย่าง",
-    analysisDesc: "อัปโหลดรูปภาพหรือถ่ายจากกล้อง ระบุรีเอเจนต์/สเกล เลือกพื้นที่วิเคราะห์ (ROI) และความละเอียดการสุ่ม เพื่อคำนวนค่าไนเตรต",
+    analysisDesc: "อัปโหลดรูปภาพหรือถ่ายจากกล้อง ระบุรีเอเจนต์/สเกล เลือก ROI และ sampling เพื่อคำนวนค่าไนเตรต",
     samplePlaceholder: "ชื่อสิ่งตัวอย่าง (ใส่หรือไม่ก็ได้)",
     reagentPlaceholder: "กรอกชื่อรีเอเจนต์",
     saveResultBtnText: "บันทึกผล",
     analyzeBtnText: "วิเคราะห์",
-    roiLabel: "พื้นที่วิเคราะห์ (ROI)",
-    samplingLabel: "ช่วงพิกเซลที่สุ่ม (Sampling step)",
 
     headerText_reports: "รายงานและระดับไนเตรต",
     reportsTitle: "รายงานข้อมูลระดับไนเตรต",
@@ -110,17 +104,13 @@ const i18n = {
     colorValuePrefix: "สี: ",
     noHistoryText: "ยังไม่มีประวัติ",
     tableHeaders: ["วันที่", "ตัวอย่าง", "รีเอเจนต์/สเกล", "สี", "RGB", "ไนเตรต (ppm)"],
-    filters: { reagent: "รีเอเจนต์/สเกล", sample: "ตัวอย่าง", apply: "ใช้ตัวกรอง", reset: "รีเซ็ต" },
-    scales: { manage: "จัดการสเกล", add: "เพิ่ม/แทนที่สเกล", export: "ส่งออกสเกล", del: "ลบสเกล", close: "ปิด" },
-    roiFull: "ทั้งภาพ", roiCenter: "กึ่งกลาง", roiDraw: "ลากกรอบ"
+    filters: { reagent: "รีเอเจนต์/สเกล", sample: "ตัวอย่าง", apply: "ใช้ตัวกรอง", reset: "รีเซ็ต" }
   }
 };
 
 function applyLanguage(lang){
   const map = i18n[lang] || i18n.en;
   setText("headerText", map.headerText_home) || setText("headerText", map.headerText_analysis) || setText("headerText", map.headerText_reports);
-
-  // Home
   setText("welcomeText", map.welcomeText);
   setText("descriptionText", map.descriptionText);
   setText("featuresText", map.featuresText);
@@ -128,16 +118,12 @@ function applyLanguage(lang){
   setText("feature2", map.feature2);
   setText("feature3", map.feature3);
   setText("feature4", map.feature4);
-
-  // Analysis labels/placeholders/buttons
   setText("analysisTitle", map.analysisTitle);
   setText("analysisDesc", map.analysisDesc);
   setPlaceholder("sampleInput", map.samplePlaceholder);
   setPlaceholder("reagentInput", map.reagentPlaceholder);
   setText("saveResultBtn", map.saveResultBtnText);
   setText("analyzeBtn", map.analyzeBtnText);
-
-  // Reports
   setText("reportsTitle", map.reportsTitle);
   setText("reportsOverview", map.reportsOverview);
   setText("detailedReportTitle", map.detailedReportTitle);
@@ -147,13 +133,6 @@ function applyLanguage(lang){
   setText("historicalDataTitle", map.historicalDataTitle);
   setText("historicalDataDesc", map.historicalDataDesc);
 
-  // Filters
-  setLabelText("filterReagent", map.filters.reagent);
-  setLabelText("filterSample", map.filters.sample);
-  setText("applyFiltersBtn", map.filters.apply);
-  setText("resetFiltersBtn", map.filters.reset);
-
-  // Dynamic readouts
   const nitrate = document.getElementById("nitrateValue");
   if (nitrate){
     const value = nitrate.dataset.value ?? "N/A";
@@ -165,21 +144,8 @@ function applyLanguage(lang){
     color.textContent = map.colorValuePrefix + value;
   }
 }
-
-function setText(id, text){
-  const el = document.getElementById(id);
-  if (el && typeof text === "string"){ el.textContent = text; return true; }
-  return false;
-}
-function setPlaceholder(id, text){
-  const el = document.getElementById(id);
-  if (el && typeof text === "string"){ el.setAttribute("placeholder", text); return true; }
-  return false;
-}
-function setLabelText(forId, text){
-  const labels = document.querySelectorAll(`label[for="${forId}"]`);
-  labels.forEach(l => l.textContent = text);
-}
+function setText(id, text){ const el=document.getElementById(id); if(el && typeof text==="string"){ el.textContent=text; return true; } return false; }
+function setPlaceholder(id, text){ const el=document.getElementById(id); if(el && typeof text==="string"){ el.setAttribute("placeholder", text); return true; } return false; }
 
 // ================== Calibration (Multi-Scale) ==================
 const BUILTIN_SCALES = {
@@ -216,18 +182,9 @@ const BUILTIN_SCALES = {
     { ppm: 160, hex: "#D72657" }
   ]
 };
-
-function loadCustomScales(){
-  try{ return JSON.parse(localStorage.getItem(CUSTOM_SCALES_KEY) || "{}"); }
-  catch{ return {}; }
-}
-function saveCustomScales(obj){
-  localStorage.setItem(CUSTOM_SCALES_KEY, JSON.stringify(obj || {}));
-}
-function getAllScales(){
-  return { ...BUILTIN_SCALES, ...loadCustomScales() };
-}
-
+function loadCustomScales(){ try{ return JSON.parse(localStorage.getItem(CUSTOM_SCALES_KEY) || "{}"); } catch{ return {}; } }
+function saveCustomScales(obj){ localStorage.setItem(CUSTOM_SCALES_KEY, JSON.stringify(obj || {})); }
+function getAllScales(){ return { ...BUILTIN_SCALES, ...loadCustomScales() }; }
 function buildScaleSelect(){
   const select = document.getElementById("scaleSelect");
   if (!select) return;
@@ -240,105 +197,75 @@ function buildScaleSelect(){
     if (name === selected) opt.selected = true;
     select.appendChild(opt);
   });
+  select.addEventListener("change", () => localStorage.setItem(SELECTED_SCALE_KEY, select.value));
 }
+
+// Lab conversion & deltaE
+function hexToRgb(hex){ const m=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex); if(!m) return {r:0,g:0,b:0}; return {r:parseInt(m[1],16), g:parseInt(m[2],16), b:parseInt(m[3],16)}; }
+function srgbToLinear(c){ c/=255; return (c<=0.04045)? c/12.92 : Math.pow((c+0.055)/1.055, 2.4); }
+function rgbToXyz({r,g,b}){ const R=srgbToLinear(r), G=srgbToLinear(g), B=srgbToLinear(b); return {
+  X: R*0.4124564 + G*0.3575761 + B*0.1804375,
+  Y: R*0.2126729 + G*0.7151522 + B*0.0721750,
+  Z: R*0.0193339 + G*0.1191920 + B*0.9503041
+}; }
+function xyzToLab({X,Y,Z}){ const Xn=0.95047, Yn=1.00000, Zn=1.08883; function f(t){ return t>0.008856? Math.cbrt(t):(7.787*t+16/116); }
+  const fx=f(X/Xn), fy=f(Y/Yn), fz=f(Z/Zn);
+  const L=(Y/Yn>0.008856)? 116*Math.cbrt(Y/Yn)-16 : 903.3*(Y/Yn);
+  return { L, a:500*(fx-fy), b:200*(fy-fz) };
+}
+function rgbToLab(rgb){ return xyzToLab(rgbToXyz(rgb)); }
+function deltaE76(l1,l2){ const dL=l1.L-l2.L, da=l1.a-l2.a, db=l1.b-l2.b; return Math.sqrt(dL*dL+da*da+db*db); }
 
 function estimateNitrateFromColor(hex, scaleName){
   const scale = getAllScales()[scaleName] || BUILTIN_SCALES["NCF Standard"];
   const lab = rgbToLab(hexToRgb(hex));
-  const ranked = scale
-    .map(e => ({...e, d: deltaE76(lab, rgbToLab(hexToRgb(e.hex)))}))
-    .sort((a,b)=>a.d-b.d);
-  const best = ranked[0];
-  const next = ranked[1] || best;
+  const ranked = scale.map(e => ({...e, d: deltaE76(lab, rgbToLab(hexToRgb(e.hex)))})).sort((a,b)=>a.d-b.d);
+  const best = ranked[0]; const next = ranked[1] || best;
   if (best.d < 1) return best.ppm;
-  const w1 = 1/Math.max(1e-6, best.d);
-  const w2 = 1/Math.max(1e-6, next.d);
+  const w1 = 1/Math.max(1e-6, best.d), w2 = 1/Math.max(1e-6, next.d);
   return Math.round((best.ppm*w1 + next.ppm*w2)/(w1+w2));
 }
 
-// Color conversions
-function hexToRgb(hex){
-  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  if(!m) return {r:0,g:0,b:0};
-  return { r: parseInt(m[1],16), g: parseInt(m[2],16), b: parseInt(m[3],16) };
-}
-function srgbToLinear(c){ c/=255; return (c<=0.04045)? c/12.92 : Math.pow((c+0.055)/1.055, 2.4); }
-function rgbToXyz({r,g,b}){
-  const R=srgbToLinear(r), G=srgbToLinear(g), B=srgbToLinear(b);
-  const X = R*0.4124564 + G*0.3575761 + B*0.1804375;
-  const Y = R*0.2126729 + G*0.7151522 + B*0.0721750;
-  const Z = R*0.0193339 + G*0.1191920 + B*0.9503041;
-  return {X, Y, Z};
-}
-function xyzToLab({X,Y,Z}){
-  const Xn=0.95047, Yn=1.00000, Zn=1.08883;
-  function f(t){ return t>0.008856 ? Math.cbrt(t) : (7.787*t + 16/116); }
-  const fx=f(X/Xn), fy=f(Y/Yn), fz=f(Z/Zn);
-  const L = (Y/Yn>0.008856)? 116*Math.cbrt(Y/Yn)-16 : 903.3*(Y/Yn);
-  const a = 500*(fx - fy);
-  const b = 200*(fy - fz);
-  return {L,a,b};
-}
-function rgbToLab(rgb){ return xyzToLab(rgbToXyz(rgb)); }
-function deltaE76(l1, l2){ const dL=l1.L-l2.L, da=l1.a-l2.a, db=l1.b-l2.b; return Math.sqrt(dL*dL+da*da+db*db); }
-
 // ================== History ==================
-function getHistory(){
-  try{ return JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]"); }
-  catch{ return []; }
-}
+function getHistory(){ try{ return JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]"); } catch{ return []; } }
 function setHistory(arr){ localStorage.setItem(HISTORY_KEY, JSON.stringify(arr)); }
 function addHistory(entry){ const arr=getHistory(); arr.unshift(entry); setHistory(arr); }
 
 // ================== Analysis Page ==================
 function setupAnalysisPage(){
-  const fileInput      = document.getElementById("fileInput");
-  const captureBtn     = document.getElementById("captureFromCamera");
-  const stopBtn        = document.getElementById("stopCamera");
-  const analyzeBtn     = document.getElementById("analyzeBtn");
-  const saveBtn        = document.getElementById("saveResultBtn");
-
-  const video          = document.getElementById("video");
-  const canvas         = document.getElementById("canvas");
-  const roiCanvas      = document.getElementById("roiCanvas");
-  const canvasWrap     = document.getElementById("canvasWrap");
-  const preview        = document.getElementById("preview");
-
-  const sampleInput    = document.getElementById("sampleInput");
-  const reagentInput   = document.getElementById("reagentInput");
-  const scaleSelect    = document.getElementById("scaleSelect");
-  const manageScalesBtn= document.getElementById("manageScalesBtn");
-
-  const sampleStep     = document.getElementById("sampleStep");
-  const sampleStepVal  = document.getElementById("sampleStepVal");
-  const roiRadios      = document.querySelectorAll('input[name="roiMode"]');
-
-  const colorBox       = document.getElementById("colorBox");
-  const colorValue     = document.getElementById("colorValue");
-  const nitrateValue   = document.getElementById("nitrateValue");
-
+  const canvas = document.getElementById("canvas");
+  const roiCanvas = document.getElementById("roiCanvas");
   if (!canvas || !roiCanvas) return; // not on analysis page
 
-  // Build scales
-  buildScaleSelect();
-  scaleSelect?.addEventListener("change", () => {
-    localStorage.setItem(SELECTED_SCALE_KEY, scaleSelect.value);
-  });
+  const fileInput = document.getElementById("fileInput");
+  const captureBtn= document.getElementById("captureFromCamera");
+  const stopBtn   = document.getElementById("stopCamera");
+  const analyzeBtn= document.getElementById("analyzeBtn");
+  const saveBtn   = document.getElementById("saveResultBtn");
 
-  // ROI state
-  let stream = null;
-  let roiMode = "full";
-  let drawing = false;
-  let roiRect = null; // {x,y,w,h}
-  syncRoiCanvasSize();
+  const video     = document.getElementById("video");
+  const canvasWrap= document.getElementById("canvasWrap");
+  const preview   = document.getElementById("preview");
+
+  const sampleInput = document.getElementById("sampleInput");
+  const reagentInput= document.getElementById("reagentInput");
+  const scaleSelect = document.getElementById("scaleSelect");
+  const manageScalesBtn = document.getElementById("manageScalesBtn");
+
+  const sampleStep   = document.getElementById("sampleStep");
+  const sampleStepVal= document.getElementById("sampleStepVal");
+  const roiRadios    = document.querySelectorAll('input[name="roiMode"]');
+
+  const colorBox   = document.getElementById("colorBox");
+  const colorValue = document.getElementById("colorValue");
+  const nitrateValue = document.getElementById("nitrateValue");
+
+  buildScaleSelect();
+
+  let stream = null, roiMode = "full", drawing = false, roiRect = null;
 
   // ROI radio change
-  roiRadios.forEach(r => {
-    r.addEventListener("change", () => {
-      roiMode = document.querySelector('input[name="roiMode"]:checked').value;
-      drawOverlay();
-    });
-  });
+  roiRadios.forEach(r => r.addEventListener("change", () => { roiMode = document.querySelector('input[name="roiMode"]:checked').value; drawOverlay(); }));
 
   // Sampling step UI
   if (sampleStep && sampleStepVal){
@@ -346,44 +273,30 @@ function setupAnalysisPage(){
     sampleStepVal.textContent = `${sampleStep.value} px`;
   }
 
-  // Manage scales modal
-  setupScaleModal();
-
   // Camera
   async function startCamera(){
     try{
       stream = await navigator.mediaDevices.getUserMedia({video:true, audio:false});
-      video.style.display = "block";
-      preview.style.display = "none";
-      canvasWrap.style.display = "none";
+      video.style.display = "block"; preview.style.display = "none"; canvasWrap.style.display = "none";
       video.srcObject = stream;
-    }catch(err){
-      alert("Camera access failed: " + err.message);
-    }
+    }catch(err){ alert("Camera access failed: " + err.message); }
   }
-  function stopCamera(){
-    if (stream){ for (const t of stream.getTracks()) t.stop(); stream=null; }
-    video.style.display = "none";
-  }
+  function stopCamera(){ if (stream){ for(const t of stream.getTracks()) t.stop(); stream=null; } video.style.display="none"; }
 
   captureBtn?.addEventListener("click", startCamera);
   stopBtn?.addEventListener("click", stopCamera);
 
-  // File upload
+  // Upload
   fileInput?.addEventListener("change", (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const file = e.target.files?.[0]; if (!file) return;
     const url = URL.createObjectURL(file);
-    preview.src = url;
-    preview.onload = () => URL.revokeObjectURL(url);
+    preview.src = url; preview.onload = () => URL.revokeObjectURL(url);
     preview.style.display = "block";
-    // draw to canvas
     const img = new Image();
     img.onload = () => {
       canvas.width = img.width; canvas.height = img.height;
       roiCanvas.width = img.width; roiCanvas.height = img.height;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0);
+      canvas.getContext("2d").drawImage(img, 0, 0);
       canvasWrap.style.display = "inline-block";
       video.style.display = "none";
       drawOverlay();
@@ -391,13 +304,11 @@ function setupAnalysisPage(){
     img.src = preview.src;
   });
 
-  // Analyze button
+  // Analyze
   analyzeBtn?.addEventListener("click", () => {
     if (video.style.display === "block" && stream){
-      // capture frame
       const ctx = canvas.getContext("2d");
-      canvas.width = video.videoWidth || 320;
-      canvas.height = video.videoHeight || 240;
+      canvas.width = video.videoWidth || 320; canvas.height = video.videoHeight || 240;
       roiCanvas.width = canvas.width; roiCanvas.height = canvas.height;
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       canvasWrap.style.display = "inline-block";
@@ -406,36 +317,22 @@ function setupAnalysisPage(){
     analyzeCanvas();
   });
 
-  // ROI drawing handlers
-  roiCanvas.addEventListener("mousedown", (e) => {
+  // ROI drawing
+  roiCanvas.addEventListener("mousedown", e => {
     if (roiMode !== "draw") return;
     drawing = true;
-    const {x,y} = getMousePos(roiCanvas, e);
-    roiRect = { x, y, w:0, h:0 };
+    const p = getMousePos(roiCanvas, e);
+    roiRect = { x:p.x, y:p.y, w:0, h:0 };
     drawOverlay();
   });
-  roiCanvas.addEventListener("mousemove", (e) => {
-    if (!drawing || roiMode!=="draw") return;
-    const {x,y} = getMousePos(roiCanvas, e);
-    roiRect.w = x - roiRect.x;
-    roiRect.h = y - roiRect.y;
+  roiCanvas.addEventListener("mousemove", e => {
+    if (!drawing || roiMode !== "draw") return;
+    const p = getMousePos(roiCanvas, e);
+    roiRect.w = p.x - roiRect.x; roiRect.h = p.y - roiRect.y;
     drawOverlay();
   });
-  window.addEventListener("mouseup", () => {
-    if (drawing){
-      drawing=false;
-      analyzeCanvas(); // auto analyze after selecting ROI
-    }
-  });
+  window.addEventListener("mouseup", () => { if (drawing){ drawing=false; analyzeCanvas(); } });
 
-  window.addEventListener("resize", syncRoiCanvasSize);
-
-  function syncRoiCanvasSize(){
-    // ensure overlay matches canvas pixel size (handled when we set widths)
-    // here only keep CSS size consistent (using attributes already sets drawing buffer)
-    roiCanvas.style.width = canvas.style.width;
-    roiCanvas.style.height= canvas.style.height;
-  }
   function getMousePos(canvasEl, evt){
     const r = canvasEl.getBoundingClientRect();
     return { x: Math.round((evt.clientX - r.left) * (canvasEl.width / r.width)),
@@ -448,42 +345,33 @@ function setupAnalysisPage(){
       const x = Math.min(roiRect.x, roiRect.x + roiRect.w);
       const y = Math.min(roiRect.y, roiRect.y + roiRect.h);
       const w = Math.abs(roiRect.w), h = Math.abs(roiRect.h);
-      ctx.fillStyle = "rgba(0, 153, 255, 0.18)";
-      ctx.fillRect(x,y,w,h);
-      ctx.strokeStyle = "#0099ff";
-      ctx.lineWidth = 2;
-      ctx.strokeRect(x,y,w,h);
+      ctx.fillStyle = "rgba(0, 153, 255, 0.18)"; ctx.fillRect(x,y,w,h);
+      ctx.strokeStyle = "#0099ff"; ctx.lineWidth = 2; ctx.strokeRect(x,y,w,h);
     } else if (roiMode === "center"){
       const w = Math.round(canvas.width * 0.5);
       const h = Math.round(canvas.height* 0.5);
       const x = Math.round((canvas.width - w)/2);
       const y = Math.round((canvas.height- h)/2);
-      ctx.fillStyle = "rgba(0, 153, 255, 0.15)";
-      ctx.fillRect(x,y,w,h);
+      ctx.fillStyle = "rgba(0, 153, 255, 0.15)"; ctx.fillRect(x,y,w,h);
       ctx.strokeStyle = "#0099ff"; ctx.lineWidth = 2; ctx.strokeRect(x,y,w,h);
     }
   }
 
   function analyzeCanvas(){
     const ctx = canvas.getContext("2d");
-    const { width, height } = canvas;
-    if (!width || !height) return;
+    const { width, height } = canvas; if (!width || !height) return;
 
-    // Determine ROI bounds
+    // ROI bounds
     let x0=0, y0=0, w=width, h=height;
     if (roiMode === "center"){
-      w = Math.round(width * 0.5);
-      h = Math.round(height* 0.5);
-      x0 = Math.round((width - w)/2);
-      y0 = Math.round((height- h)/2);
+      w=Math.round(width*0.5); h=Math.round(height*0.5);
+      x0=Math.round((width-w)/2); y0=Math.round((height-h)/2);
     } else if (roiMode === "draw" && roiRect){
       const x = Math.min(roiRect.x, roiRect.x + roiRect.w);
       const y = Math.min(roiRect.y, roiRect.y + roiRect.h);
-      w = Math.max(1, Math.abs(roiRect.w));
-      h = Math.max(1, Math.abs(roiRect.h));
-      x0 = Math.max(0, Math.min(width-1, x));
-      y0 = Math.max(0, Math.min(height-1, y));
-      if (x0 + w > width)  w = width  - x0;
+      w = Math.max(1, Math.abs(roiRect.w)); h = Math.max(1, Math.abs(roiRect.h));
+      x0 = Math.max(0, Math.min(width-1, x)); y0 = Math.max(0, Math.min(height-1, y));
+      if (x0 + w > width) w = width - x0;
       if (y0 + h > height) h = height - y0;
     }
 
@@ -509,31 +397,30 @@ function setupAnalysisPage(){
     nitrateValue.textContent = `${i18n[CURRENT_LANG].nitrateValuePrefix}${nitrateValue.dataset.value}`;
   }
 
-  saveBtn?.addEventListener("click", () => {
+  // Save result
+  document.getElementById("saveResultBtn")?.addEventListener("click", () => {
     const ctext = colorValue?.dataset?.value;
     const ntext = nitrateValue?.dataset?.value;
-    if (!ctext || !ntext){
-      alert("Please analyze first.");
-      return;
-    }
+    if (!ctext || !ntext){ alert("Please analyze first."); return; }
+
     const hexMatch = ctext.match(/#([0-9a-f]{6})/i);
     const rgbMatch = ctext.match(/rgb\s*([0-9]+),\s*([0-9]+),\s*([0-9]+)/i);
     const ppmMatch = ntext.match(/(\d+)\s*ppm/i);
-    const hex = hexMatch ? "#" + hexMatch[1] : "";
-    const rgb = rgbMatch ? `${rgbMatch[1]},${rgbMatch[2]},${rgbMatch[3]}` : "";
-    const ppm = ppmMatch ? parseInt(ppmMatch[1],10) : null;
     const entry = {
       date: new Date().toISOString(),
       sample: (sampleInput?.value?.trim()) || "",
       reagent: (reagentInput?.value?.trim()) || (scaleSelect?.value || ""),
       scale:   (scaleSelect?.value || ""),
-      color: hex, rgb, nitrate_ppm: ppm
+      color: hexMatch ? "#" + hexMatch[1] : "",
+      rgb: rgbMatch ? `${rgbMatch[1]},${rgbMatch[2]},${rgbMatch[3]}` : "",
+      nitrate_ppm: ppmMatch ? parseInt(ppmMatch[1],10) : null
     };
     addHistory(entry);
     alert("Saved to history.");
   });
 
-  // Modal actions
+  // Scales modal
+  setupScaleModal();
   function setupScaleModal(){
     const modal = document.getElementById("scaleModalBackdrop");
     const openBtn = manageScalesBtn;
@@ -562,17 +449,15 @@ function setupAnalysisPage(){
         if (raw.trim().startsWith("[")) {
           data = JSON.parse(raw);
         } else {
-          // parse CSV  ppm,hex
           const rows = raw.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
           data = rows.map(line => {
             const [ppm, hex] = line.split(/[,\s]+/);
-            return { ppm: Number(ppm), hex: hex };
+            return { ppm: Number(ppm), hex: hex.startsWith("#")? hex:("#"+hex) };
           });
         }
-        // basic validation
         if (!Array.isArray(data) || !data.length) throw new Error("Invalid data");
         data.forEach(e => {
-          if (typeof e.ppm!=="number" || !/^#?[0-9a-f]{6}$/i.test(e.hex)) throw new Error("Invalid row");
+          if (typeof e.ppm!=="number" || !/^#?[0-9a-f]{6}$/i.test(e.hex.replace("#",""))) throw new Error("Invalid row");
           if (!e.hex.startsWith("#")) e.hex = "#" + e.hex;
         });
       }catch(err){
@@ -598,14 +483,10 @@ function setupAnalysisPage(){
 
     deleteBtn?.addEventListener("click", () => {
       const name = (nameInput.value || "").trim();
-      if (!name){ alert("Enter scale name to delete."); return; }
       const custom = loadCustomScales();
-      if (!(name in custom)){ alert("Scale not found (custom only)."); return; }
+      if (!name || !(name in custom)){ alert("Scale not found (custom only)."); return; }
       if (confirm(`Delete custom scale "${name}"?`)){
-        delete custom[name];
-        saveCustomScales(custom);
-        buildScaleSelect();
-        alert("Scale deleted.");
+        delete custom[name]; saveCustomScales(custom); buildScaleSelect(); alert("Scale deleted.");
       }
     });
   }
@@ -616,7 +497,6 @@ function setupReportsPage(){
   const container = document.getElementById("nitrateReports");
   if (!container) return; // not on reports page
 
-  // Filters
   const sel = document.getElementById("filterReagent");
   const inp = document.getElementById("filterSample");
   const applyBtn = document.getElementById("applyFiltersBtn");
@@ -647,9 +527,7 @@ function setupReportsPage(){
     const rows = [["Date","Sample","Reagent/Scale","DominantColor","RGB","Nitrate(ppm)"]];
     const data = getFilteredHistory();
     if (data.length){
-      for (const h of data){
-        rows.push([h.date, h.sample, h.reagent || h.scale || "", h.color, h.rgb, h.nitrate_ppm]);
-      }
+      for (const h of data) rows.push([h.date, h.sample, h.reagent || h.scale || "", h.color, h.rgb, h.nitrate_ppm]);
     } else {
       rows.push([new Date().toISOString(),"","","#000000","","0"]);
     }
@@ -666,7 +544,6 @@ function setupReportsPage(){
     if (confirm("Clear all history?")) { setHistory([]); renderHistory(); renderChart(); buildReagentFilter(); }
   });
 
-  // Initial render
   renderHistory();
   renderChart();
 
@@ -674,12 +551,8 @@ function setupReportsPage(){
     const reagent = sel.value;
     const sampleQ = (inp.value || "").trim().toLowerCase();
     let arr = getHistory();
-    if (reagent && reagent!=="__ALL__"){
-      arr = arr.filter(h => (h.reagent || h.scale || "") === reagent);
-    }
-    if (sampleQ){
-      arr = arr.filter(h => (h.sample || "").toLowerCase().includes(sampleQ));
-    }
+    if (reagent && reagent!=="__ALL__"){ arr = arr.filter(h => (h.reagent || h.scale || "") === reagent); }
+    if (sampleQ){ arr = arr.filter(h => (h.sample || "").toLowerCase().includes(sampleQ)); }
     return arr.slice().sort((a,b)=> new Date(a.date) - new Date(b.date));
   }
 
@@ -689,60 +562,34 @@ function setupReportsPage(){
     const container = document.getElementById("nitrateReports");
     container.innerHTML = "";
     const data = getFilteredHistory();
-    if (!data.length){
-      const p = document.createElement("p");
-      p.textContent = t.noHistoryText;
-      container.appendChild(p);
-      return;
-    }
+    if (!data.length){ const p=document.createElement("p"); p.textContent=t.noHistoryText; container.appendChild(p); return; }
+
     const table = document.createElement("table");
-    table.style.width = "100%";
-    table.style.borderCollapse = "collapse";
-    table.style.background = "#fff";
-    table.style.borderRadius = "8px";
-    table.style.overflow = "hidden";
+    table.style.width="100%"; table.style.borderCollapse="collapse"; table.style.background="#fff";
+    table.style.borderRadius="8px"; table.style.overflow="hidden";
 
     const thead = document.createElement("thead");
     const trh = document.createElement("tr");
     t.tableHeaders.forEach(h => {
       const th = document.createElement("th");
-      th.textContent = h;
-      th.style.padding = "10px";
-      th.style.borderBottom = "1px solid #eee";
-      th.style.textAlign = "left";
+      th.textContent = h; th.style.padding="10px"; th.style.borderBottom="1px solid #eee"; th.style.textAlign="left";
       trh.appendChild(th);
     });
     thead.appendChild(trh);
 
     const tbody = document.createElement("tbody");
-    data.slice().reverse().forEach(item => { // show latest first in table
+    data.slice().reverse().forEach(item => {
       const tr = document.createElement("tr");
-
-      const tdDate = document.createElement("td");
-      tdDate.textContent = new Date(item.date).toLocaleString();
-      const tdSample = document.createElement("td");
-      tdSample.textContent = item.sample || "";
-      const tdReagent = document.createElement("td");
-      tdReagent.textContent = item.reagent || item.scale || "";
-
+      const tdDate = document.createElement("td"); tdDate.textContent = new Date(item.date).toLocaleString();
+      const tdSample = document.createElement("td"); tdSample.textContent = item.sample || "";
+      const tdReagent = document.createElement("td"); tdReagent.textContent = item.reagent || item.scale || "";
       const tdColor = document.createElement("td");
       const sw = document.createElement("span");
-      Object.assign(sw.style, { display:"inline-block", width:"18px", height:"18px", border:"1px solid #ccc", borderRadius:"4px", verticalAlign:"middle", marginRight:"8px", background:item.color || "#eee" });
-      tdColor.appendChild(sw);
-      const ctext = document.createElement("span");
-      ctext.textContent = item.color || "";
-      tdColor.appendChild(ctext);
-
-      const tdRGB = document.createElement("td");
-      tdRGB.textContent = item.rgb || "";
-
-      const tdPPM = document.createElement("td");
-      tdPPM.textContent = (item.nitrate_ppm ?? "") + "";
-
-      [tdDate, tdSample, tdReagent, tdColor, tdRGB, tdPPM].forEach(td => {
-        td.style.padding = "10px"; td.style.borderBottom = "1px solid #f3f3f3";
-        tr.appendChild(td);
-      });
+      Object.assign(sw.style,{display:"inline-block",width:"18px",height:"18px",border:"1px solid #ccc",borderRadius:"4px",verticalAlign:"middle",marginRight:"8px",background:item.color || "#eee"});
+      tdColor.appendChild(sw); const ctext=document.createElement("span"); ctext.textContent=item.color || ""; tdColor.appendChild(ctext);
+      const tdRGB = document.createElement("td"); tdRGB.textContent = item.rgb || "";
+      const tdPPM = document.createElement("td"); tdPPM.textContent = (item.nitrate_ppm ?? "") + "";
+      [tdDate,tdSample,tdReagent,tdColor,tdRGB,tdPPM].forEach(td=>{ td.style.padding="10px"; td.style.borderBottom="1px solid #f3f3f3"; tr.appendChild(td); });
       tbody.appendChild(tr);
     });
 
@@ -759,46 +606,23 @@ function setupReportsPage(){
     const labels = data.map(d => new Date(d.date));
     const series = data.map(d => d.nitrate_ppm ?? null);
 
+    if (!window.Chart){ return; } // guard when CDN blocked
+
     CURRENT_CHART = new Chart(ctx, {
       type: "line",
-      data: {
-        labels,
-        datasets: [{
-          label: "Nitrate (ppm)",
-          data: series,
-          pointRadius: 3,
-          tension: 0.25
-        }]
-      },
+      data: { labels, datasets: [{ label: "Nitrate (ppm)", data: series, pointRadius:3, tension:0.25 }] },
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        parsing: false,
+        responsive:true, maintainAspectRatio:false, parsing:false,
         scales: {
-          x: {
-            type: "time",
-            time: { unit: "day" },
-            ticks: { autoSkip: true, maxTicksLimit: 8 }
-          },
-          y: {
-            beginAtZero: true,
-            title: { display: true, text: "ppm" }
-          }
+          x: { type:"time", time:{ unit:"day" }, ticks:{ autoSkip:true, maxTicksLimit:8 } },
+          y: { beginAtZero:true, title:{ display:true, text:"ppm" } }
         },
-        plugins: {
-          legend: { display: true },
-          tooltip: { mode: "index", intersect: false }
-        }
+        plugins: { legend:{ display:true }, tooltip:{ mode:"index", intersect:false } }
       }
     });
   }
 
-  // Expose for re-render elsewhere
+  // expose
   window.renderHistory = renderHistory;
   window.renderChart = renderChart;
-}
-
-// ================== Helpers ==================
-function toCSV(rows){
-  return rows.map(r => r.map(v => `"${String(v ?? "").replace(/"/g,'""')}"`).join(",")).join("\n");
 }
