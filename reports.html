@@ -31,11 +31,16 @@
         Browse comprehensive reports on nitrate levels detected in your samples.
         Use this information for quality control and trend analysis.
       </p>
+
       <div class="card">
         <h2 id="detailedReportTitle">Detailed Report</h2>
         <p id="detailedReportDesc">Download a CSV summary of recent analyses.</p>
-        <button id="downloadReportBtn">Download Report (CSV)</button>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button id="downloadReportBtn">Download Report (CSV)</button>
+          <button id="clearHistoryBtn" class="secondary">Clear History</button>
+        </div>
       </div>
+
       <div class="card">
         <h2 id="historicalDataTitle">Historical Data</h2>
         <p id="historicalDataDesc">Review historical data to track changes over time.</p>
