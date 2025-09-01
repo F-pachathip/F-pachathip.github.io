@@ -6,6 +6,41 @@
   <title>AI Color & Nitrate Detector - Analysis</title>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
   <link rel="stylesheet" href="style.css">
+  <link id="site-style" rel="stylesheet" href="./style.css?v=20250901">
+
+<script>
+  // ถ้าโหลดล้มเหลว ให้ลอง path อื่น ๆ อัตโนมัติ
+  (function () {
+    const tried = new Set();
+    const candidates = [
+      "./style.css",
+      "style.css",
+      "css/style.css",
+      "/style.css"
+    ];
+    function tryNext() {
+      const link = document.getElementById("site-style");
+      if (!link) return;
+      const next = candidates.find(h => !tried.has(h));
+      if (!next) return;
+      tried.add(next);
+      link.href = next + "?v=" + Date.now();
+    }
+    const link = document.getElementById("site-style");
+    if (link) {
+      link.addEventListener("error", tryNext, { once: false });
+      // ถ้า 2 วินาทีแล้วยังไม่ apply style ใด ๆ ให้ลอง path ถัดไป
+      setTimeout(() => {
+        const s = getComputedStyle(document.body);
+        // เช็คง่าย ๆ: ถ้ายังเป็น default-ish อยู่ (เดา) ให้ลองเปลี่ยน
+        if (!document.querySelector(".navbar") || s.backgroundColor === "rgb(255, 255, 255)") {
+          tryNext();
+        }
+      }, 2000);
+    }
+  })();
+</script>
+
 </head>
 <body>
   <div class="navbar">
