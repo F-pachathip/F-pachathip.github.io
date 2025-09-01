@@ -1,55 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reports and Nitrate Levels</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Color & Nitrate Detector - Reports</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="navbar">
-        <h2>NCF Nitrate Detector</h2>
-        <div class="hamburger" onclick="toggleMenu()">
-            <div></div>
-            <div></div>
-            <div></div>
-        </div>
-        <ul>
-            <li><a href="index.html">Home</a></li>
-            <li><a href="reports.html">Reports</a></li>
-            <li><a href="analysis.html">Analysis</a></li>
-            <li><a href="camera.html">Camera</a></li>
-        </ul>
-        <div class="language-toggle">
-            <button id="languageToggle">ภาษาไทย</button>
-        </div>
+  <div class="navbar">
+    <h2>AI Color & Nitrate Detector</h2>
+    <div class="hamburger" onclick="toggleMenu()">
+      <div></div><div></div><div></div>
     </div>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="analysis.html">Analysis</a></li>
+      <li><a href="reports.html" class="active-link">Reports</a></li>
+    </ul>
+    <div class="language-toggle">
+      <button id="languageToggle">ภาษาไทย</button>
+    </div>
+  </div>
 
-    <div class="header" id="headerText">Reports and Nitrate Levels</div>
+  <div class="header" id="headerText">Reports and Nitrate Levels</div>
 
-    <div class="content">
-        <h1 id="reportsTitle">Reports on Nitrate Levels</h1>
-        <div class="card">
-            <h2>Overview</h2>
-            <p id="reportsOverview">Here you will find comprehensive reports on nitrate levels detected in various samples. Use this information to make informed decisions and ensure quality control.</p>
-        </div>
-        <div class="card">
-            <h2>Detailed Report</h2>
-            <p>Access detailed reports that break down nitrate levels by sample, date, and other relevant parameters.</p>
-            <button>Download Report</button>
-        </div>
-        <div class="card">
-            <h2>Historical Data</h2>
-            <p>Review historical data to track changes in nitrate levels over time and identify trends.</p>
-        </div>
-
-        <h1 id="nitrateLevelsTitle">Nitrate Levels in Samples</h1>
-        <p id="nitrateLevelsDetails">Details about the nitrate levels will be displayed here.</p>
+  <div class="content">
+    <div class="card w-full">
+      <h1 id="reportsTitle">Reports on Nitrate Levels</h1>
+      <p id="reportsOverview">
+        Browse comprehensive reports on nitrate levels detected in your samples.
+        Use this information for quality control and trend analysis.
+      </p>
+      <div class="card">
+        <h2 id="detailedReportTitle">Detailed Report</h2>
+        <p id="detailedReportDesc">Download a CSV summary of recent analyses.</p>
+        <button id="downloadReportBtn">Download Report (CSV)</button>
+      </div>
+      <div class="card">
+        <h2 id="historicalDataTitle">Historical Data</h2>
+        <p id="historicalDataDesc">Review historical data to track changes over time.</p>
         <div id="nitrateReports"></div>
+      </div>
     </div>
+  </div>
 
-    <div class="footer">&copy; 2025 AI Color & Nitrate Detector. All Rights Reserved.</div>
-
-    <script src="script.js"></script>
+  <div class="footer">&copy; <span id="currentYear"></span> AI Color & Nitrate Detector. All Rights Reserved.</div>
+  <script src="script.js"></script>
 </body>
 </html>
