@@ -221,3 +221,33 @@ async function apiCreateScale(name){
     headers:{'Content-Type':'application/json'},
     credentials:'same-origin',
     body:
+  }
+  window.addEventListener('DOMContentLoaded', async () => {
+  setupCommon();
+  await setupAuthUI();
+  const page = document.body.getAttribute('data-page');
+  if (page === 'login') initLoginPage();
+  if (page === 'register') initRegisterPage();
+  if (page === 'analysis') initAnalysisPage();
+  if (page === 'reports') initReportsPage();
+  if (page === 'csv') initCsvPage();
+});
+function initLoginPage(){
+  const form = document.getElementById('loginForm');
+  const err = document.getElementById('loginError');
+  form.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    err.textContent = '';
+    const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+    const password = document.getElementById('loginPassword').value;
+    const r = await fetch('/api/login', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      credentials:'same-origin',
+      body: JSON.stringify({email,password})
+    });
+    if(!r.ok){ err.textContent = 'อีเมลหรือรหัสผ่านไม่ถูกต้อง'; return; }
+    const next = new URLSearchParams(location.search).get('next') || 'index.html';
+    location.replace(next);
+  });
+}
