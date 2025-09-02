@@ -4,50 +4,128 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>AI Color & Nitrate Detector - Analysis</title>
-  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" rel="stylesheet"/>
-  <style id="critical-style">*{box-sizing:border-box} html,body{margin:0}
-body{font-family:'Kanit',system-ui,Arial,sans-serif;background:#0b1220;color:#e7eaf1}
-.header{padding:16px 20px;text-align:center;font-weight:700}
-.content{padding:24px}</style>
-  <link id="site-style" rel="stylesheet" href="./style.css?v=20250902">
-  <script>(function(){
-  const link = document.getElementById('site-style');
-  const kill = () => { const c = document.getElementById('critical-style'); if (c) c.remove(); };
-  if (link) {
-    link.addEventListener('load', kill);
-    setTimeout(kill, 2000);
-  } else {
-    setTimeout(kill, 1500);
-  }
-})();</script>
+
+  <style id="critical-style">
+    *{box-sizing:border-box} html,body{margin:0} body{font-family:'Kanit',system-ui,Arial,sans-serif;background:#0b1220;color:#e7eaf1}
+    .header{padding:16px 20px;text-align:center;font-weight:700}
+    .content{padding:24px}
+  </style>
+  <link id="site-style" rel="stylesheet" href="./style.css?v=20250901">
+  <script>
+    (function(){const l=document.getElementById('site-style');const c=document.getElementById('critical-style');
+      const p=["./style.css","style.css","css/style.css","/style.css"];let i=0;const kill=()=>{c&&c.remove();};
+      l.addEventListener('load',kill);l.addEventListener('error',()=>{if(++i<p.length) l.href=p[i]+"?v="+Date.now();});setTimeout(kill,2000);
+    })();
+  </script>
 </head>
 <body>
   <aside class="navbar">
     <div class="brand">
       <div class="brand-mark"><span class="material-symbols-rounded">science</span></div>
-      <div class="brand-text"><strong>AI Nitrate</strong><small>Detector Suite</small></div>
+      <div class="brand-text">
+        <strong>AI Nitrate</strong>
+        <small>Detector Suite</small>
+      </div>
     </div>
-    <button class="hamburger" onclick="toggleMenu()" aria-label="Menu"><span></span><span></span><span></span></button>
+
+    <button class="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></button>
+
     <ul class="navlist">
       <li><a href="index.html"><span class="material-symbols-rounded">home</span> Home</a></li>
       <li><a class="active-link" href="analysis.html"><span class="material-symbols-rounded">colorize</span> Analysis</a></li>
       <li><a href="reports.html"><span class="material-symbols-rounded">analytics</span> Reports</a></li>
-      <li><a href="csv.html"><span class="material-symbols-rounded">table</span> CSV</a></li>
+      <!-- เพิ่มลิงก์ไปหน้า CSV Vault -->
+      <li><a href="csv.html"><span class="material-symbols-rounded">table</span> CSV Vault</a></li>
     </ul>
-    <div class="lang"><button id="languageToggle" class="btn chip">ภาษาไทย</button></div>
+
+    <div class="lang">
+      <button id="languageToggle" class="btn chip">ภาษาไทย</button>
+    </div>
   </aside>
+
   <header class="header glass">
     <h1 id="headerText">Color & Nitrate Analysis</h1>
   </header>
 
   <main class="content container">
     <section class="card">
-      <h2 id="analysisTitle">Analyze a Sample</h2>
-      <p id="analysisDesc" class="muted">Upload an image or capture from camera. Then choose a color scale to estimate nitrate concentration.</p>
+      <h2 id="analysisTitle" class="section-title">
+        Analyze a Sample
+      </h2>
+      <p id="analysisDesc" class="muted">
+        Upload an image or capture from camera. Then enter the reagent and scale. Choose ROI and sampling resolution. We'll detect the dominant color and estimate nitrate level.
+      </p>
 
-      <!-- The rest of your original analysis controls/components live in script.js -->
-      <div id="analysisApp"></div>
+      <!-- Controls -->
+      <div class="controls">
+        <label class="file">
+          <input type="file" id="fileInput" accept="image/*">
+          <span class="btn btn-outline"><span class="material-symbols-rounded">upload</span> Upload image</span>
+        </label>
+        <button id="captureFromCamera" class="btn"><span class="material-symbols-rounded">photo_camera</span> Capture</button>
+        <button id="stopCamera" class="btn btn-ghost"><span class="material-symbols-rounded">stop_circle</span> Stop</button>
+      </div>
+
+      <!-- Media -->
+      <div class="media-row">
+        <video id="video" width="360" height="270" autoplay muted playsinline style="display:none;"></video>
+
+        <div class="canvas-wrap" id="canvasWrap" style="display:none;">
+          <canvas id="canvas" width="360" height="270"></canvas>
+          <canvas id="roiCanvas" width="360" height="270"></canvas>
+        </div>
+
+        <img id="preview" alt="preview" style="display:none; max-width:360px; border-radius:16px;"/>
+      </div>
+
+      <!-- Params -->
+      <div class="toolbar">
+        <div class="form-row">
+          <label for="sampleInput">Sample</label>
+          <input type="text" id="sampleInput" placeholder="Sample name (optional)">
+        </div>
+
+        <div class="form-row">
+          <label for="reagentInput">Reagent</label>
+          <input type="text" id="reagentInput" placeholder="Enter reagent used">
+        </div>
+
+        <div class="form-row">
+          <label for="scaleSelect">Scale</label>
+          <select id="scaleSelect"></select>
+          <button id="manageScalesBtn" class="btn btn-ghost"><span class="material-symbols-rounded">tune</span> Manage Scales</button>
+        </div>
+
+        <div class="form-row">
+          <span class="form-label">ROI</span>
+          <label class="radio"><input type="radio" name="roiMode" value="full" checked> Full Image</label>
+          <label class="radio"><input type="radio" name="roiMode" value="center"> Center Crop</label>
+          <label class="radio"><input type="radio" name="roiMode" value="draw"> Draw Rect</label>
+        </div>
+
+        <div class="form-row">
+          <label for="sampleStep">Sampling step</label>
+          <input type="range" id="sampleStep" min="2" max="50" step="1" value="10">
+          <span id="sampleStepVal" class="badge">10 px</span>
+        </div>
+
+        <div class="form-row">
+          <button id="analyzeBtn" class="btn btn-primary"><span class="material-symbols-rounded">play_circle</span> Analyze</button>
+          <button id="saveResultBtn" class="btn btn-outline"><span class="material-symbols-rounded">save</span> Save Result</button>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div class="results-row">
+        <div id="colorBox" class="swatch"></div>
+        <div class="readouts">
+          <p id="colorValue" class="readout">Color: N/A</p>
+          <p id="nitrateValue" class="readout">Nitrate Level: N/A</p>
+        </div>
+      </div>
     </section>
   </main>
 

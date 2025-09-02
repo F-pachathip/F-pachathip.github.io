@@ -1,99 +1,190 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>AI Color & Nitrate Detector - CSV Viewer</title>
-  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" rel="stylesheet"/>
-  <style id="critical-style">*{box-sizing:border-box} html,body{margin:0}
-body{font-family:'Kanit',system-ui,Arial,sans-serif;background:#0b1220;color:#e7eaf1}
-.header{padding:16px 20px;text-align:center;font-weight:700}
-.content{padding:24px}</style>
-  <link id="site-style" rel="stylesheet" href="./style.css?v=20250902">
-  <script>(function(){
-  const link = document.getElementById('site-style');
-  const kill = () => { const c = document.getElementById('critical-style'); if (c) c.remove(); };
-  if (link) {
-    link.addEventListener('load', kill);
-    setTimeout(kill, 2000);
-  } else {
-    setTimeout(kill, 1500);
-  }
-})();</script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CSV Vault — หน้าเก็บไฟล์ CSV (กดโหลดได้ทันที)</title>
+
+  <style>
+    :root{
+      --bg:#0b1220; --panel:#0f1930; --text:#e7eaf1; --muted:#a8b2c1;
+      --border:#243149; --ring:#7fb0ff; --ok:#22c55e; --accent:#4d83ff;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;background:
+      radial-gradient(900px 500px at 10% -10%, #1b2a5a 0, transparent 60%),
+      radial-gradient(900px 500px at 110% 10%, #0e4a72 0, transparent 60%), var(--bg);
+      color:var(--text); font-family:system-ui, -apple-system, "Segoe UI", Arial, sans-serif;}
+    .wrap{max-width:980px; margin:28px auto; padding:0 16px}
+    .title{font-weight:700; font-size:20px; margin:0 0 8px}
+    .sub{color:var(--muted); margin:0 0 18px}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border:1px solid var(--border); border-radius:14px; padding:14px; box-shadow:0 10px 30px #0005;}
+    .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    .btn{display:inline-flex; align-items:center; gap:8px; border:1px solid var(--border);
+      background:#0f1b33; color:var(--text); padding:10px 14px; border-radius:12px; cursor:pointer; text-decoration:none; user-select:none}
+    .btn:hover{background:#152849}
+    .btn-primary{background:linear-gradient(180deg, var(--accent), #2f6bff); border-color:#2f6bff}
+    .btn-ghost{background:transparent}
+    .badge{display:inline-block; padding:4px 8px; border-radius:999px;
+      background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); color:#cfe1ff; font-size:12px}
+    .list{margin:14px 0 0; display:grid; gap:12px}
+    .item{display:flex; gap:12px; align-items:center; justify-content:space-between;
+      padding:12px; border:1px solid var(--border); border-radius:12px; background:#0e1830}
+    .meta{display:flex; gap:10px; align-items:center; min-width:0}
+    .name{font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:52vw}
+    .muted{color:var(--muted)}
+    details{margin-top:8px}
+    summary{cursor:pointer; color:#cfe1ff}
+    pre{background:#0b1430; border:1px solid #1f2a4a; padding:10px; border-radius:10px; overflow:auto; margin:8px 0 0}
+  </style>
 </head>
 <body>
-  <aside class="navbar">
-    <div class="brand">
-      <div class="brand-mark"><span class="material-symbols-rounded">science</span></div>
-      <div class="brand-text"><strong>AI Nitrate</strong><small>Detector Suite</small></div>
-    </div>
-    <button class="hamburger" onclick="toggleMenu()" aria-label="Menu"><span></span><span></span><span></span></button>
-    <ul class="navlist">
-      <li><a href="index.html"><span class="material-symbols-rounded">home</span> Home</a></li>
-      <li><a href="analysis.html"><span class="material-symbols-rounded">colorize</span> Analysis</a></li>
-      <li><a href="reports.html"><span class="material-symbols-rounded">analytics</span> Reports</a></li>
-      <li><a class="active-link" href="csv.html"><span class="material-symbols-rounded">table</span> CSV</a></li>
-    </ul>
-    <div class="lang"><button id="languageToggle" class="btn chip">ภาษาไทย</button></div>
-  </aside>
-  <header class="header glass">
-    <h1 id="headerText_csv">CSV Viewer</h1>
-  </header>
+  <div class="wrap">
+    <h1 class="title">CSV Vault</h1>
+    <p class="sub">หน้าเก็บไฟล์ CSV ที่ฝังไว้ในหน้านี้ เปิดแล้วกดดาวน์โหลดได้ทันที ไม่ต้องอัปโหลด/ลากวาง</p>
 
-  <main class="content container">
-    <section class="card">
-      <h2 id="csvTitle">Open and Explore CSV</h2>
-      <p id="csvDesc" class="muted">Upload a CSV file, then search, sort, paginate, and download filtered results.</p>
-
-      <div class="form-row" style="margin-top:8px; gap:12px; align-items:flex-end; flex-wrap:wrap">
-        <label class="form-label">
-          <span class="material-symbols-rounded" aria-hidden="true">upload_file</span>
-          <span id="csvUploadLabel">Choose CSV</span>
-          <input id="csvFileInput" type="file" accept=".csv,text/csv" style="display:block; margin-top:6px"/>
-        </label>
-
-        <label class="form-label">
-          <span id="csvRowsPerPageLabel">Rows / page:</span>
-          <select id="rowsPerPage" style="margin-left:8px; min-width:110px">
-            <option>10</option><option>25</option><option selected>50</option><option>100</option>
-          </select>
-        </label>
-
-        <label class="form-label" style="flex:1; min-width:220px">
-          <span class="material-symbols-rounded" aria-hidden="true">search</span>
-          <input id="searchInput" type="text" placeholder="Search..." style="width:100%; margin-top:6px"/>
-        </label>
-
-        <button id="downloadBtn" class="btn btn-outline"><span class="material-symbols-rounded">download</span> <span id="csvDownloadBtn">Download CSV</span></button>
-        <button id="clearBtn" class="btn btn-ghost"><span class="material-symbols-rounded">delete</span> <span id="csvClearBtn">Clear</span></button>
-      </div>
-    </section>
-
-    <section class="card soft" style="margin-top:16px">
-      <div id="tableWrap" class="table-wrap">
-        <table id="csvTable" aria-live="polite">
-          <thead id="csvThead"></thead>
-          <tbody id="csvTbody"></tbody>
-        </table>
-      </div>
-      <div id="emptyState" class="muted" style="padding:16px; display:none">No data yet.</div>
-
-      <div class="form-row" style="margin-top:12px; justify-content:space-between">
-        <div id="pageInfo" class="small muted">Page 1 / 1</div>
-        <div>
-          <button id="prevPage" class="btn btn-outline"><span class="material-symbols-rounded">chevron_left</span> Prev</button>
-          <button id="nextPage" class="btn btn-outline">Next <span class="material-symbols-rounded">chevron_right</span></button>
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <div class="row">
+          <span class="badge" id="kCount">0 ไฟล์</span>
+          <span class="badge" id="kSize">รวม 0 KB</span>
         </div>
+        <button class="btn btn-primary" id="downloadAllBtn" aria-label="ดาวน์โหลดทุกไฟล์">ดาวน์โหลดทุกไฟล์</button>
       </div>
-    </section>
-  </main>
 
-  <footer class="footer">
-    &copy; <span id="currentYear"></span> AI Color & Nitrate Detector. All Rights Reserved.
-  </footer>
+      <div class="list" id="fileList" aria-live="polite"></div>
+    </div>
+  </div>
 
-  <!-- Only one script now: merged logic -->
-  <script src="script.js"></script>
+  <script>
+    // =========================
+    // 🔧 เพิ่ม/แก้ไฟล์ที่นี่
+    // - name: ชื่อไฟล์ปลายทาง
+    // - content: เนื้อหา CSV แบบข้อความ
+    // =========================
+    const FILES = [
+      {
+        name: "salesdata_missing4.csv",
+        content:
+`sale_id,date,brand,model,devices,usd_price
+S24001,2024-01-05,Apple,iPhone 15,phone,999
+S24002,2024-01-07,Samsung,Galaxy S24,phone,899
+S24003,2024-02-10,Lenovo,E310 True Wireless,headphones,39
+S24004,2024-03-02,Huawei, MatePad 11,tablet,329
+S24xxx,2024-05-15,Apple,MacBook Air 13,notebook,1099`
+      },
+      {
+        name: "devices_catalog.csv",
+        content:
+`brand,phone,tablet,headphones,notebook
+Apple,iPhone 15,iPad Air,AirPods Pro 2,MacBook Air 13
+Samsung,Galaxy S24,Galaxy Tab S9,Galaxy Buds2,Galaxy Book3
+Huawei,P60,MatePad 11,FreeBuds 5, MateBook 14
+Lenovo,Legion Phone,Yoga Tab,Pulse 3D,E310 True Wireless`
+      },
+      {
+        name: "regions_prices_2024.csv",
+        content:
+`region,currency,fx_usd,remark
+US,USD,1,base
+EU,EUR,0.92,approx
+TH,THB,35.2,mid-2024`
+      }
+    ];
+
+    // ===== Helpers =====
+    const $ = (s,ctx=document)=>ctx.querySelector(s);
+    const humanSize = (bytes)=>{
+      if(bytes < 1024) return bytes + ' B';
+      const kb = bytes/1024;
+      if(kb < 1024) return kb.toFixed(1)+' KB';
+      const mb = kb/1024;
+      return mb.toFixed(2)+' MB';
+    };
+    const fileSizeFromString = (str)=> new Blob([str]).size;
+
+    function downloadText(filename, text){
+      const blob = new Blob([text], {type:'text/csv;charset=utf-8;'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      URL.revokeObjectURL(a.href);
+      a.remove();
+    }
+
+    function previewLines(text, n=10){
+      return text.split(/\r?\n/).slice(0, n).join('\n');
+    }
+
+    // ===== Render =====
+    function render(){
+      const list = $('#fileList');
+      list.innerHTML = '';
+
+      let totalBytes = 0;
+
+      FILES.forEach((f, idx)=>{
+        const size = fileSizeFromString(f.content);
+        totalBytes += size;
+
+        const item = document.createElement('div');
+        item.className = 'item';
+
+        const meta = document.createElement('div');
+        meta.className = 'meta';
+        const name = document.createElement('div');
+        name.className = 'name';
+        name.textContent = f.name;
+
+        const sizeEl = document.createElement('div');
+        sizeEl.className = 'muted';
+        sizeEl.textContent = humanSize(size);
+
+        meta.append(name, sizeEl);
+
+        const actions = document.createElement('div');
+        actions.className = 'row';
+
+        const btnDl = document.createElement('button');
+        btnDl.className = 'btn';
+        btnDl.setAttribute('aria-label', `ดาวน์โหลด ${f.name}`);
+        btnDl.textContent = 'ดาวน์โหลด';
+        btnDl.addEventListener('click', ()=> downloadText(f.name, f.content));
+
+        const det = document.createElement('details');
+        const sum = document.createElement('summary');
+        sum.textContent = 'พรีวิว (10 บรรทัดแรก)';
+        const pre = document.createElement('pre');
+        pre.textContent = previewLines(f.content, 10);
+        det.append(sum, pre);
+
+        actions.append(btnDl);
+        item.append(meta, actions);
+        list.appendChild(item);
+        list.appendChild(det);
+      });
+
+      $('#kCount').textContent = `${FILES.length} ไฟล์`;
+      $('#kSize').textContent = `รวม ${humanSize(totalBytes)}`;
+    }
+
+    // ===== Download All (ทีละไฟล์) =====
+    $('#downloadAllBtn').addEventListener('click', ()=>{
+      // ดาวน์โหลดเรียงกันเพื่อหลีกเลี่ยงปัญหาบราวเซอร์บล็อกหลายคลิก
+      (async function run(){
+        for(const f of FILES){
+          downloadText(f.name, f.content);
+          // หน่วงเล็กน้อยเพื่อให้ event คลิกไม่ถูกรวม
+          // (ส่วนใหญ่ไม่จำเป็น แต่ช่วยให้ UX เดาได้)
+          await new Promise(r=>setTimeout(r, 120));
+        }
+      })();
+    });
+
+    render();
+  </script>
 </body>
 </html>
