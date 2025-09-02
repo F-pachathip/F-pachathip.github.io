@@ -1,1 +1,0 @@
-# F-pachathip.github.io
