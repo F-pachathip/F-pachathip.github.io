@@ -4,95 +4,48 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>AI Color & Nitrate Detector - Reports</title>
-
-  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" rel="stylesheet"/>
-
-  <style id="critical-style">
-    *{box-sizing:border-box} html,body{margin:0} body{font-family:'Kanit',system-ui,Arial,sans-serif;background:#0b1220;color:#e7eaf1}
-    .header{padding:16px 20px;text-align:center;font-weight:700}
-    .content{padding:24px}
-  </style>
-  <link id="site-style" rel="stylesheet" href="./style.css?v=20250901">
-  <script>
-    (function(){const l=document.getElementById('site-style');const c=document.getElementById('critical-style');
-      const p=["./style.css","style.css","css/style.css","/style.css"];let i=0;const kill=()=>{c&&c.remove();};
-      l.addEventListener('load',kill);l.addEventListener('error',()=>{if(++i<p.length) l.href=p[i]+"?v="+Date.now();});setTimeout(kill,2000);
-    })();
-  </script>
-
-  <!-- Charts -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+  <style id="critical-style">*{box-sizing:border-box} html,body{margin:0}
+body{font-family:'Kanit',system-ui,Arial,sans-serif;background:#0b1220;color:#e7eaf1}
+.header{padding:16px 20px;text-align:center;font-weight:700}
+.content{padding:24px}</style>
+  <link id="site-style" rel="stylesheet" href="./style.css?v=20250902">
+  <script>(function(){
+  const link = document.getElementById('site-style');
+  const kill = () => { const c = document.getElementById('critical-style'); if (c) c.remove(); };
+  if (link) {
+    link.addEventListener('load', kill);
+    setTimeout(kill, 2000);
+  } else {
+    setTimeout(kill, 1500);
+  }
+})();</script>
 </head>
 <body>
   <aside class="navbar">
     <div class="brand">
       <div class="brand-mark"><span class="material-symbols-rounded">science</span></div>
-      <div class="brand-text">
-        <strong>AI Nitrate</strong>
-        <small>Detector Suite</small>
-      </div>
+      <div class="brand-text"><strong>AI Nitrate</strong><small>Detector Suite</small></div>
     </div>
-
-    <button class="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></button>
-
+    <button class="hamburger" onclick="toggleMenu()" aria-label="Menu"><span></span><span></span><span></span></button>
     <ul class="navlist">
       <li><a href="index.html"><span class="material-symbols-rounded">home</span> Home</a></li>
       <li><a href="analysis.html"><span class="material-symbols-rounded">colorize</span> Analysis</a></li>
       <li><a class="active-link" href="reports.html"><span class="material-symbols-rounded">analytics</span> Reports</a></li>
-      <li><a href="csv.html"><span class="material-symbols-rounded">table_chart</span> CSV</a></li>
+      <li><a href="csv.html"><span class="material-symbols-rounded">table</span> CSV</a></li>
     </ul>
-
-    <div class="lang">
-      <button id="languageToggle" class="btn chip">ภาษาไทย</button>
-    </div>
+    <div class="lang"><button id="languageToggle" class="btn chip">ภาษาไทย</button></div>
   </aside>
-
   <header class="header glass">
     <h1 id="headerText">Reports and Nitrate Levels</h1>
   </header>
 
   <main class="content container">
-    <section class="card w-full">
-      <h2 id="reportsTitle" class="section-title">Reports on Nitrate Levels</h2>
-      <p id="reportsOverview" class="muted">
-        Browse comprehensive reports on nitrate levels detected in your samples. Use this information for quality control and trend analysis.
-      </p>
-
-      <!-- Filters -->
-      <div class="toolbar">
-        <div class="form-row">
-          <label for="filterReagent">Reagent/Scale</label>
-          <select id="filterReagent"></select>
-        </div>
-        <div class="form-row">
-          <label for="filterSample">Sample</label>
-          <input id="filterSample" placeholder="Type to filter (optional)">
-        </div>
-        <div class="form-row">
-          <button id="applyFiltersBtn" class="btn btn-primary"><span class="material-symbols-rounded">filter_alt</span> Apply Filters</button>
-          <button id="resetFiltersBtn" class="btn btn-ghost"><span class="material-symbols-rounded">restart_alt</span> Reset</button>
-        </div>
-      </div>
-
-      <div class="card soft">
-        <h3 id="detailedReportTitle" class="section-subtitle">Detailed Report</h3>
-        <p id="detailedReportDesc" class="muted">Download a CSV summary of filtered analyses.</p>
-        <div class="btn-row">
-          <button id="downloadReportBtn" class="btn btn-outline"><span class="material-symbols-rounded">download</span> Download CSV</button>
-          <button id="clearHistoryBtn" class="btn btn-danger"><span class="material-symbols-rounded">delete</span> Clear History</button>
-        </div>
-      </div>
-
-      <div class="card soft">
-        <h3 id="historicalDataTitle" class="section-subtitle">Historical Data</h3>
-        <p id="historicalDataDesc" class="muted">Review historical data to track changes over time.</p>
-        <div class="chart-wrap">
-          <canvas id="trendChart" height="110"></canvas>
-        </div>
-        <div id="nitrateReports" style="margin-top:14px;"></div>
-      </div>
+    <section class="card">
+      <h2 id="reportsTitle">Reports on Nitrate Levels</h2>
+      <p id="reportsOverview" class="muted">Browse comprehensive reports on nitrate levels in your samples.</p>
+      <div id="reportsApp"></div>
     </section>
   </main>
 

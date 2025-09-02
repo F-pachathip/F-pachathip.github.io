@@ -1,165 +1,99 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AI Color & Nitrate Detector - CSV</title>
-
-  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>AI Color & Nitrate Detector - CSV Viewer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" rel="stylesheet"/>
-
-  <style id="critical-style">
-    *{box-sizing:border-box} html,body{margin:0}
-    body{font-family:'Kanit',system-ui,Arial,sans-serif;background:#0b1220;color:#e7eaf1}
-    .header{padding:16px 20px;text-align:center;font-weight:700}
-    .content{padding:24px}
-  </style>
-  <link id="site-style" rel="stylesheet" href="./style.css?v=20250901">
-  <script>
-    (function(){const link=document.getElementById('site-style');const crit=document.getElementById('critical-style');
-      const paths=["./style.css","style.css","css/style.css","/style.css"];let i=0;
-      const kill=()=>{crit&&crit.remove();}; link.addEventListener('load',kill);
-      link.addEventListener('error',()=>{if(++i<paths.length) link.href=paths[i]+"?v="+Date.now();});
-      setTimeout(kill,2000);
-    })();
-  </script>
+  <style id="critical-style">*{box-sizing:border-box} html,body{margin:0}
+body{font-family:'Kanit',system-ui,Arial,sans-serif;background:#0b1220;color:#e7eaf1}
+.header{padding:16px 20px;text-align:center;font-weight:700}
+.content{padding:24px}</style>
+  <link id="site-style" rel="stylesheet" href="./style.css?v=20250902">
+  <script>(function(){
+  const link = document.getElementById('site-style');
+  const kill = () => { const c = document.getElementById('critical-style'); if (c) c.remove(); };
+  if (link) {
+    link.addEventListener('load', kill);
+    setTimeout(kill, 2000);
+  } else {
+    setTimeout(kill, 1500);
+  }
+})();</script>
 </head>
 <body>
   <aside class="navbar">
     <div class="brand">
       <div class="brand-mark"><span class="material-symbols-rounded">science</span></div>
-      <div class="brand-text">
-        <strong>AI Nitrate</strong>
-        <small>Detector Suite</small>
-      </div>
+      <div class="brand-text"><strong>AI Nitrate</strong><small>Detector Suite</small></div>
     </div>
-
-    <button class="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></button>
-
+    <button class="hamburger" onclick="toggleMenu()" aria-label="Menu"><span></span><span></span><span></span></button>
     <ul class="navlist">
       <li><a href="index.html"><span class="material-symbols-rounded">home</span> Home</a></li>
       <li><a href="analysis.html"><span class="material-symbols-rounded">colorize</span> Analysis</a></li>
       <li><a href="reports.html"><span class="material-symbols-rounded">analytics</span> Reports</a></li>
-      <li><a class="active-link" href="csv.html"><span class="material-symbols-rounded">table_chart</span> CSV</a></li>
+      <li><a class="active-link" href="csv.html"><span class="material-symbols-rounded">table</span> CSV</a></li>
     </ul>
-
-    <div class="lang">
-      <button id="languageToggle" class="btn chip">ภาษาไทย</button>
-    </div>
+    <div class="lang"><button id="languageToggle" class="btn chip">ภาษาไทย</button></div>
   </aside>
-
   <header class="header glass">
-    <h1 id="csvHeaderText">CSV Viewer</h1>
+    <h1 id="headerText_csv">CSV Viewer</h1>
   </header>
 
-  <main class="content container" id="csvPage">
-    <div class="card">
-      <h2 id="csvTitle" class="section-title">Data Table</h2>
+  <main class="content container">
+    <section class="card">
+      <h2 id="csvTitle">Open and Explore CSV</h2>
+      <p id="csvDesc" class="muted">Upload a CSV file, then search, sort, paginate, and download filtered results.</p>
 
-      <!-- Toolbar -->
-      <div class="toolbar" style="margin-bottom:10px">
-        <div style="flex:1">
-          <label id="csvSearchLabel">ค้นหา/กรอง (พิมพ์เพื่อกรองแถว)</label>
-          <input id="search" type="text" placeholder="เช่น Apple / S24xxx / 2024-05-01 ..." />
-        </div>
-        <div>
-          <label id="csvRowsPerPageLabel">แถวต่อหน้า</label>
-          <select id="rowsPerPage">
-            <option>10</option>
-            <option selected>25</option>
-            <option>50</option>
-            <option>100</option>
-            <option value="0">ทั้งหมด</option>
+      <div class="form-row" style="margin-top:8px; gap:12px; align-items:flex-end; flex-wrap:wrap">
+        <label class="form-label">
+          <span class="material-symbols-rounded" aria-hidden="true">upload_file</span>
+          <span id="csvUploadLabel">Choose CSV</span>
+          <input id="csvFileInput" type="file" accept=".csv,text/csv" style="display:block; margin-top:6px"/>
+        </label>
+
+        <label class="form-label">
+          <span id="csvRowsPerPageLabel">Rows / page:</span>
+          <select id="rowsPerPage" style="margin-left:8px; min-width:110px">
+            <option>10</option><option>25</option><option selected>50</option><option>100</option>
           </select>
-        </div>
-        <div class="switch">
-          <div>
-            <label id="csvDelimiterLabel">ตัวคั่น</label>
-            <select id="delimiter">
-              <option value="auto" selected>Auto</option>
-              <option value=",">Comma (,)</option>
-              <option value=";">Semicolon (;)</option>
-              <option value="\t">Tab (↹)</option>
-              <option value="|">Pipe (|)</option>
-            </select>
-          </div>
-          <div>
-            <label id="csvHeaderLabel">ส่วนหัว</label>
-            <select id="hasHeader">
-              <option value="1" selected>มี</option>
-              <option value="0">ไม่มี</option>
-            </select>
-          </div>
-        </div>
-        <button id="downloadBtn" class="btn"><span class="material-symbols-rounded">download</span> ดาวน์โหลด CSV</button>
-      </div>
+        </label>
 
-      <!-- KPIs -->
-      <div class="kpi">
-        <div class="pill"><span id="kRows">0</span> แถว</div>
-        <div class="pill"><span id="kCols">0</span> คอลัมน์</div>
-        <div class="pill">เรียงโดย: <span id="kSort">—</span></div>
-      </div>
+        <label class="form-label" style="flex:1; min-width:220px">
+          <span class="material-symbols-rounded" aria-hidden="true">search</span>
+          <input id="searchInput" type="text" placeholder="Search..." style="width:100%; margin-top:6px"/>
+        </label>
 
-      <!-- Table -->
-      <div class="table-wrap">
-        <table id="table">
-          <thead id="thead"></thead>
-          <tbody id="tbody"></tbody>
+        <button id="downloadBtn" class="btn btn-outline"><span class="material-symbols-rounded">download</span> <span id="csvDownloadBtn">Download CSV</span></button>
+        <button id="clearBtn" class="btn btn-ghost"><span class="material-symbols-rounded">delete</span> <span id="csvClearBtn">Clear</span></button>
+      </div>
+    </section>
+
+    <section class="card soft" style="margin-top:16px">
+      <div id="tableWrap" class="table-wrap">
+        <table id="csvTable" aria-live="polite">
+          <thead id="csvThead"></thead>
+          <tbody id="csvTbody"></tbody>
         </table>
       </div>
+      <div id="emptyState" class="muted" style="padding:16px; display:none">No data yet.</div>
 
-      <!-- Pagination -->
-      <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <div class="pagination">
-          <button id="prevBtn" class="btn">ก่อนหน้า</button>
-          <div class="pill">หน้า <span id="pageNow">1</span>/<span id="pageTotal">1</span></div>
-          <button id="nextBtn" class="btn">ถัดไป</button>
-        </div>
-        <div class="spacer"></div>
-        <div class="small muted">Tip: click table header to sort ↑↓</div>
-      </div>
-    </div>
-
-    <!-- Right column: Loaders -->
-    <div class="card" style="margin-top:16px">
-      <h2 id="csvSourcesTitle">Data Sources</h2>
-
-      <div class="form-row">
+      <div class="form-row" style="margin-top:12px; justify-content:space-between">
+        <div id="pageInfo" class="small muted">Page 1 / 1</div>
         <div>
-          <label id="csvUploadLabel">อัปโหลดไฟล์ .csv</label>
-          <input id="fileInput" type="file" accept=".csv,text/csv" />
+          <button id="prevPage" class="btn btn-outline"><span class="material-symbols-rounded">chevron_left</span> Prev</button>
+          <button id="nextPage" class="btn btn-outline">Next <span class="material-symbols-rounded">chevron_right</span></button>
         </div>
       </div>
-
-      <div style="margin-top:12px">
-        <label id="csvPasteLabel">วางข้อความ CSV ตรง ๆ</label>
-        <textarea id="pasteArea" placeholder='ตัวอย่าง:
-sale_id,date,brand,model,devices,usd_price
-S24001,2024-01-05,Apple,iPhone 15,phone,999
-S24002,2024-02-10,Lenovo,E310 True Wireless,headphones,39'></textarea>
-        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
-          <button id="loadPasteBtn" class="btn btn-primary">โหลดจากข้อความ</button>
-          <button id="clearPasteBtn" class="btn btn-ghost">ล้าง</button>
-        </div>
-      </div>
-
-      <div style="margin-top:16px">
-        <label id="csvUrlLabel">โหลดจาก URL (อาจติด CORS ถ้าเซิร์ฟเวอร์ไม่อนุญาต)</label>
-        <div class="form-row">
-          <input id="urlInput" type="url" placeholder="https://…/data.csv" />
-          <button id="loadUrlBtn" class="btn">โหลด URL</button>
-        </div>
-      </div>
-
-      <div id="msg" class="small muted" style="margin-top:8px"></div>
-    </div>
+    </section>
   </main>
 
   <footer class="footer">
     &copy; <span id="currentYear"></span> AI Color & Nitrate Detector. All Rights Reserved.
   </footer>
 
+  <!-- Only one script now: merged logic -->
   <script src="script.js"></script>
 </body>
 </html>

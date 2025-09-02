@@ -1,628 +1,435 @@
-// ================== Globals & Boot ==================
-let CURRENT_LANG = "en";
-let CURRENT_CHART = null;
+/* ===========================================================
+   Global UI: menu toggle, language toggle, footer year
+   + CSV Viewer logic merged here (no csv-module.js needed)
+   =========================================================== */
 
-// Keys
-const HISTORY_KEY = "nitrateHistory";
-const CUSTOM_SCALES_KEY = "nitrateCustomScales";
-const SELECTED_SCALE_KEY = "selectedScale";
+(function(){
+  // ---------- Footer year ----------
+  document.addEventListener("DOMContentLoaded", () => {
+    const y = document.getElementById("currentYear");
+    if (y) y.textContent = new Date().getFullYear();
+  });
 
-// DOM Ready
-document.addEventListener("DOMContentLoaded", () => {
-  // Footer Year
-  const yearSpan = document.getElementById("currentYear");
-  if (yearSpan) yearSpan.textContent = new Date().getFullYear();
+  // ---------- Menu toggle ----------
+  window.toggleMenu = function(){
+    // Toggle class on sidebar for responsive layouts
+    const aside = document.querySelector(".navbar");
+    if (aside) aside.classList.toggle("open");
+  };
 
-  // Language Toggle
-  const langBtn = document.getElementById("languageToggle");
-  if (langBtn) {
-    let isThai = false;
-    langBtn.addEventListener("click", () => {
-      isThai = !isThai;
-      CURRENT_LANG = isThai ? "th" : "en";
-      applyLanguage(CURRENT_LANG);
-      langBtn.textContent = isThai ? "English" : "ภาษาไทย";
-      if (document.getElementById("nitrateReports")) renderHistory();
-      if (document.getElementById("trendChart")) renderChart();
+  // ---------- Global i18n ----------
+  // Keep CURRENT_LANG on window for other features/pages
+  window.CURRENT_LANG = window.CURRENT_LANG || "en";
+
+  const I18N = {
+    en: {
+      // Shared / Home
+      langBtn: "ภาษาไทย",
+      headerText: "Welcome to the AI Color & Nitrate Detector",
+      welcomeText: "Welcome to the AI Color & Nitrate Detection System",
+      descriptionText: "This system helps you analyze colors and detect nitrate levels in various samples using AI for accurate, reliable results.",
+      feature1: "Real-time color detection",
+      feature2: "Nitrate level analysis",
+      feature3: "Comprehensive reports",
+      feature4: "Customizable settings",
+
+      // Analysis
+      analysisHeader: "Color & Nitrate Analysis",
+      analysisTitle: "Analyze a Sample",
+      analysisDesc: "Upload an image or capture from camera. Then choose a color scale to estimate nitrate concentration.",
+
+      // Reports
+      reportsHeader: "Reports and Nitrate Levels",
+      reportsTitle: "Reports on Nitrate Levels",
+      reportsOverview: "Browse comprehensive reports on nitrate levels in your samples.",
+
+      // CSV page
+      headerText_csv: "CSV Viewer",
+      csvTitle: "Open and Explore CSV",
+      csvDesc: "Upload a CSV file, then search, sort, paginate, and download filtered results.",
+      csvUploadLabel: "Choose CSV",
+      csvRowsPerPageLabel: "Rows / page:",
+      csvDownloadBtn: "Download CSV",
+      csvClearBtn: "Clear",
+      csvEmpty: "No data yet.",
+      csvPrev: "Prev",
+      csvNext: "Next",
+      csvSearchPlaceholder: "Search...",
+      pageTpl: (p, t) => `Page ${p} / ${t}`
+    },
+    th: {
+      // Shared / Home
+      langBtn: "English",
+      headerText: "ยินดีต้อนรับสู่ระบบตรวจจับสีและไนเตรตด้วย AI",
+      welcomeText: "ยินดีต้อนรับสู่ระบบตรวจจับสีและปริมาณไนเตรตด้วยปัญญาประดิษฐ์",
+      descriptionText: "ระบบนี้ช่วยวิเคราะห์สีและตรวจหาปริมาณไนเตรตในสิ่งตัวอย่างต่าง ๆ ด้วย AI เพื่อผลลัพธ์ที่แม่นยำและเชื่อถือได้",
+      feature1: "ตรวจจับสีแบบเรียลไทม์",
+      feature2: "วิเคราะห์ปริมาณไนเตรต",
+      feature3: "รายงานผลแบบครบถ้วน",
+      feature4: "ตั้งค่าการทำงานได้ตามต้องการ",
+
+      // Analysis
+      analysisHeader: "การวิเคราะห์สีและไนเตรต",
+      analysisTitle: "วิเคราะห์ตัวอย่าง",
+      analysisDesc: "อัปโหลดภาพหรือถ่ายจากกล้อง แล้วเลือกสเกลสีเพื่อคาดการณ์ความเข้มข้นของไนเตรต",
+
+      // Reports
+      reportsHeader: "รายงานและระดับไนเตรต",
+      reportsTitle: "รายงานระดับไนเตรต",
+      reportsOverview: "เรียกดูรายงานสรุประดับไนเตรตในตัวอย่างของคุณ",
+
+      // CSV page
+      headerText_csv: "ตัวดูไฟล์ CSV",
+      csvTitle: "เปิดและสำรวจไฟล์ CSV",
+      csvDesc: "อัปโหลดไฟล์ CSV แล้วค้นหา เรียงลำดับ แบ่งหน้า และดาวน์โหลดผลลัพธ์ที่กรองแล้วได้",
+      csvUploadLabel: "เลือกไฟล์ CSV",
+      csvRowsPerPageLabel: "แถวต่อหน้า:",
+      csvDownloadBtn: "ดาวน์โหลด CSV",
+      csvClearBtn: "ล้าง",
+      csvEmpty: "ยังไม่มีข้อมูล",
+      csvPrev: "ก่อนหน้า",
+      csvNext: "ถัดไป",
+      csvSearchPlaceholder: "ค้นหา...",
+      pageTpl: (p, t) => `หน้า ${p} / ${t}`
+    }
+  };
+
+  function applyCommonI18n(){
+    const L = I18N[window.CURRENT_LANG] || I18N.en;
+
+    // Language button
+    const langBtn = document.getElementById("languageToggle");
+    if (langBtn) langBtn.textContent = L.langBtn;
+
+    // Home IDs
+    const set = (id, text) => { const el = document.getElementById(id); if (el && text!=null) el.textContent = text; };
+    set("headerText", L.headerText);
+    set("welcomeText", L.welcomeText);
+    set("descriptionText", L.descriptionText);
+    set("feature1", "bolt " + L.feature1); // If icons in markup, text is after icon
+    set("feature2", "lab_panel " + L.feature2);
+    set("feature3", "insights " + L.feature3);
+    set("feature4", "tune " + L.feature4);
+
+    // Analysis IDs
+    set("analysisTitle", L.analysisTitle);
+    set("analysisDesc", L.analysisDesc);
+    set("headerText_csv", L.headerText_csv); // CSV header (safe even if not on CSV page)
+
+    // Reports IDs
+    const rh = document.getElementById("headerText");
+    // If we're on reports.html, headerText is used for reports header too (leave Home untouched otherwise)
+    // We'll set these only if elements present
+    const repHeader = document.querySelector("h1#headerText");
+    if (repHeader && repHeader.textContent && repHeader.textContent.match(/Reports|รายงาน/)) {
+      repHeader.textContent = L.reportsHeader;
+    }
+    set("reportsTitle", L.reportsTitle);
+    set("reportsOverview", L.reportsOverview);
+  }
+
+  // Bind language toggle
+  document.addEventListener("DOMContentLoaded", () => {
+    applyCommonI18n();
+    const btn = document.getElementById("languageToggle");
+    if (btn){
+      btn.addEventListener("click", () => {
+        window.CURRENT_LANG = (window.CURRENT_LANG === "en") ? "th" : "en";
+        applyCommonI18n();
+        // Also refresh CSV section if present
+        csv_applyI18n();
+        csv_updatePageInfo();
+      });
+    }
+  });
+
+  /* ===========================================================
+     CSV VIEWER (merged)
+     Elements (on csv.html):
+     - csvFileInput, rowsPerPage, searchInput
+     - downloadBtn, clearBtn, prevPage, nextPage
+     - csvThead, csvTbody, tableWrap, emptyState, pageInfo
+     - headerText_csv, csvTitle, csvDesc, csvUploadLabel, ...
+     =========================================================== */
+
+  // State
+  let CSV_HEADERS = [];     // array<string>
+  let CSV_ROWS = [];        // array<object>
+  let CSV_FILTERED = [];    // array<object>
+  let CSV_SORT_COL = -1;    // index
+  let CSV_SORT_DIR = 1;     // 1 asc, -1 desc
+  let CSV_PAGE = 1;
+  let CSV_PER_PAGE = 50;
+  let CSV_TYPES = [];       // inferred column types
+
+  // --- DOM helpers
+  const $ = (id) => document.getElementById(id);
+  const on = (el, ev, fn) => { if (el) el.addEventListener(ev, fn); };
+
+  // --- I18N for CSV subsection (reuse global dictionary)
+  function csv_L(){
+    const L = I18N[window.CURRENT_LANG] || I18N.en;
+    return {
+      headerText_csv: L.headerText_csv,
+      csvTitle: L.csvTitle,
+      csvDesc: L.csvDesc,
+      csvUploadLabel: L.csvUploadLabel,
+      csvRowsPerPageLabel: L.csvRowsPerPageLabel,
+      csvDownloadBtn: L.csvDownloadBtn,
+      csvClearBtn: L.csvClearBtn,
+      empty: L.csvEmpty,
+      prev: L.csvPrev,
+      next: L.csvNext,
+      searchPlaceholder: L.csvSearchPlaceholder,
+      pageTpl: L.pageTpl
+    };
+  }
+
+  function csv_applyI18n(){
+    if (!$("csvTable")) return; // not on CSV page
+    const L = csv_L();
+    const set = (id, key) => { const el = $(id); if (el && L[key]!=null) el.textContent = L[key]; };
+    set("headerText_csv", "headerText_csv");
+    set("csvTitle", "csvTitle");
+    set("csvDesc", "csvDesc");
+    set("csvUploadLabel", "csvUploadLabel");
+    set("csvRowsPerPageLabel", "csvRowsPerPageLabel");
+    set("csvDownloadBtn", "csvDownloadBtn");
+    set("csvClearBtn", "csvClearBtn");
+    const s = $("searchInput"); if (s) s.placeholder = L.searchPlaceholder;
+    const es = $("emptyState"); if (es) es.textContent = L.empty;
+
+    const prev = $("prevPage");
+    if (prev){
+      // Replace text node (keep icon span)
+      prev.childNodes.forEach(n => { if (n.nodeType === 3) n.textContent = " " + L.prev + " "; });
+    }
+    const next = $("nextPage");
+    if (next){
+      next.childNodes.forEach(n => { if (n.nodeType === 3) n.textContent = " " + L.next + " "; });
+    }
+  }
+
+  // --- CSV parsing / export
+  function csv_parse(text){
+    const out = []; let row = []; let cur = ""; let inQ = false;
+    const pushCell = () => { row.push(cur); cur = ""; };
+    const pushRow  = () => { out.push(row); row = []; };
+    for (let i=0; i<text.length; i++){
+      const c = text[i];
+      if (inQ){
+        if (c === '"'){
+          if (text[i+1] === '"'){ cur += '"'; i++; }
+          else { inQ = false; }
+        } else cur += c;
+      } else {
+        if (c === '"') inQ = true;
+        else if (c === ',') pushCell();
+        else if (c === '\n'){ pushCell(); pushRow(); }
+        else if (c === '\r') {/* skip */ }
+        else cur += c;
+      }
+    }
+    if (cur.length || row.length){ pushCell(); pushRow(); }
+    return out;
+  }
+
+  function csv_esc(v){
+    const s = (v==null) ? "" : String(v);
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+  function csv_toCSV(arr){
+    return arr.map(r => r.map(csv_esc).join(",")).join("\n");
+  }
+
+  function csv_inferTypes(cols, data){
+    const isNum = (v) => v!=="" && !isNaN(+v);
+    return cols.map((_, ci) => {
+      let numeric = 0, seen = 0;
+      for (let r=0; r<data.length && r<200; r++){
+        const v = data[r][ci];
+        if (v!==undefined){ seen++; if (isNum(v)) numeric++; }
+      }
+      return (seen>0 && numeric/seen>0.7) ? "number" : "string";
     });
   }
 
-  // Init pages
-  setupAnalysisPage();
-  setupReportsPage();
-});
-
-// Sidebar toggle
-function toggleMenu(){
-  const list = document.querySelector(".navbar ul");
-  if (list) list.classList.toggle("active");
-}
-
-// ================== i18n ==================
-const i18n = {
-  en: {
-    headerText_home: "Welcome to the AI Color & Nitrate Detector",
-    welcomeText: "Welcome to the AI Color & Nitrate Detection System",
-    descriptionText: "This system helps you analyze colors and detect nitrate levels in various samples using AI for accurate, reliable results.",
-    featuresText: "Features include:",
-    feature1: "Real-time color detection",
-    feature2: "Nitrate level analysis",
-    feature3: "Comprehensive reports",
-    feature4: "Customizable settings",
-
-    headerText_analysis: "Color & Nitrate Analysis",
-    analysisTitle: "Analyze a Sample",
-    analysisDesc: "Upload an image or capture from camera. Then enter the reagent and scale. Choose ROI and sampling resolution. We'll detect the dominant color and estimate nitrate level.",
-    samplePlaceholder: "Sample name (optional)",
-    reagentPlaceholder: "Enter reagent used",
-    saveResultBtnText: "Save Result",
-    analyzeBtnText: "Analyze",
-
-    headerText_reports: "Reports and Nitrate Levels",
-    reportsTitle: "Reports on Nitrate Levels",
-    reportsOverview: "Browse comprehensive reports on nitrate levels detected in your samples. Use this information for quality control and trend analysis.",
-    detailedReportTitle: "Detailed Report",
-    detailedReportDesc: "Download a CSV summary of filtered analyses.",
-    downloadReportBtnText: "Download Report (CSV)",
-    clearHistoryBtnText: "Clear History",
-    historicalDataTitle: "Historical Data",
-    historicalDataDesc: "Review historical data to track changes over time.",
-    nitrateValuePrefix: "Nitrate Level: ",
-    colorValuePrefix: "Color: ",
-    noHistoryText: "No history yet.",
-    tableHeaders: ["Date", "Sample", "Reagent/Scale", "Color", "RGB", "Nitrate (ppm)"],
-    filters: { reagent: "Reagent/Scale", sample: "Sample", apply: "Apply Filters", reset: "Reset" }
-  },
-  th: {
-    headerText_home: "ยินดีต้อนรับสู่ระบบตรวจจับสีและไนเตรตด้วย AI",
-    welcomeText: "ยินดีต้อนรับสู่ระบบวิเคราะห์สีและตรวจหาไนเตรต",
-    descriptionText: "ระบบนี้ช่วยวิเคราะห์สีและตรวจหาไนเตรตในตัวอย่างต่าง ๆ ด้วย AI เพื่อผลลัพธ์ที่แม่นยำและเชื่อถือได้",
-    featuresText: "ฟีเจอร์:",
-    feature1: "ตรวจจับสีแบบเรียลไทม์",
-    feature2: "วิเคราะห์ระดับไนเตรต",
-    feature3: "รายงานผลแบบละเอียด",
-    feature4: "ตั้งค่าการทำงานได้",
-
-    headerText_analysis: "การวิเคราะห์สีและไนเตรต",
-    analysisTitle: "วิเคราะห์ตัวอย่าง",
-    analysisDesc: "อัปโหลดรูปภาพหรือถ่ายจากกล้อง ระบุรีเอเจนต์/สเกล เลือก ROI และ sampling เพื่อคำนวนค่าไนเตรต",
-    samplePlaceholder: "ชื่อสิ่งตัวอย่าง (ใส่หรือไม่ก็ได้)",
-    reagentPlaceholder: "กรอกชื่อรีเอเจนต์",
-    saveResultBtnText: "บันทึกผล",
-    analyzeBtnText: "วิเคราะห์",
-
-    headerText_reports: "รายงานและระดับไนเตรต",
-    reportsTitle: "รายงานข้อมูลระดับไนเตรต",
-    reportsOverview: "ดูรายงานสรุประดับไนเตรตที่ตรวจพบในตัวอย่าง เพื่อใช้ควบคุมคุณภาพและวิเคราะห์แนวโน้ม",
-    detailedReportTitle: "รายงานแบบละเอียด",
-    detailedReportDesc: "ดาวน์โหลดไฟล์ CSV จากข้อมูลที่คัดกรองแล้ว",
-    downloadReportBtnText: "ดาวน์โหลดรายงาน (CSV)",
-    clearHistoryBtnText: "ล้างประวัติ",
-    historicalDataTitle: "ข้อมูลย้อนหลัง",
-    historicalDataDesc: "ทบทวนข้อมูลย้อนหลังเพื่อติดตามความเปลี่ยนแปลง",
-    nitrateValuePrefix: "ระดับไนเตรต: ",
-    colorValuePrefix: "สี: ",
-    noHistoryText: "ยังไม่มีประวัติ",
-    tableHeaders: ["วันที่", "ตัวอย่าง", "รีเอเจนต์/สเกล", "สี", "RGB", "ไนเตรต (ppm)"],
-    filters: { reagent: "รีเอเจนต์/สเกล", sample: "ตัวอย่าง", apply: "ใช้ตัวกรอง", reset: "รีเซ็ต" }
-  }
-};
-
-function applyLanguage(lang){
-  const map = i18n[lang] || i18n.en;
-  setText("headerText", map.headerText_home) || setText("headerText", map.headerText_analysis) || setText("headerText", map.headerText_reports);
-  setText("welcomeText", map.welcomeText);
-  setText("descriptionText", map.descriptionText);
-  setText("featuresText", map.featuresText);
-  setText("feature1", map.feature1);
-  setText("feature2", map.feature2);
-  setText("feature3", map.feature3);
-  setText("feature4", map.feature4);
-  setText("analysisTitle", map.analysisTitle);
-  setText("analysisDesc", map.analysisDesc);
-  setPlaceholder("sampleInput", map.samplePlaceholder);
-  setPlaceholder("reagentInput", map.reagentPlaceholder);
-  setText("saveResultBtn", map.saveResultBtnText);
-  setText("analyzeBtn", map.analyzeBtnText);
-  setText("reportsTitle", map.reportsTitle);
-  setText("reportsOverview", map.reportsOverview);
-  setText("detailedReportTitle", map.detailedReportTitle);
-  setText("detailedReportDesc", map.detailedReportDesc);
-  setText("downloadReportBtn", map.downloadReportBtnText);
-  setText("clearHistoryBtn", map.clearHistoryBtnText);
-  setText("historicalDataTitle", map.historicalDataTitle);
-  setText("historicalDataDesc", map.historicalDataDesc);
-
-  const nitrate = document.getElementById("nitrateValue");
-  if (nitrate){
-    const value = nitrate.dataset.value ?? "N/A";
-    nitrate.textContent = map.nitrateValuePrefix + value;
-  }
-  const color = document.getElementById("colorValue");
-  if (color){
-    const value = color.dataset.value ?? "N/A";
-    color.textContent = map.colorValuePrefix + value;
-  }
-}
-function setText(id, text){ const el=document.getElementById(id); if(el && typeof text==="string"){ el.textContent=text; return true; } return false; }
-function setPlaceholder(id, text){ const el=document.getElementById(id); if(el && typeof text==="string"){ el.setAttribute("placeholder", text); return true; } return false; }
-
-// ================== Calibration (Multi-Scale) ==================
-const BUILTIN_SCALES = {
-  "NCF Standard": [
-    { ppm: 0,   hex: "#FFF86A" },
-    { ppm: 10,  hex: "#FFD24D" },
-    { ppm: 20,  hex: "#FFB347" },
-    { ppm: 40,  hex: "#FF7F50" },
-    { ppm: 80,  hex: "#FF4C4C" },
-    { ppm: 160, hex: "#B22222" }
-  ],
-  "Low Range (0–50)": [
-    { ppm: 0,  hex: "#FFFACD" },
-    { ppm: 5,  hex: "#FFE08A" },
-    { ppm: 10, hex: "#FFC857" },
-    { ppm: 20, hex: "#FFA552" },
-    { ppm: 35, hex: "#FF7E6A" },
-    { ppm: 50, hex: "#FF5C5C" }
-  ],
-  "Wide Range (0–200)": [
-    { ppm: 0,   hex: "#FCFDD4" },
-    { ppm: 25,  hex: "#FFE48A" },
-    { ppm: 50,  hex: "#FFC658" },
-    { ppm: 100, hex: "#FF8B58" },
-    { ppm: 150, hex: "#FF5A5A" },
-    { ppm: 200, hex: "#C92A2A" }
-  ],
-  "Griess Pink Variant": [
-    { ppm: 0,   hex: "#FFF0F6" },
-    { ppm: 10,  hex: "#FFD2E1" },
-    { ppm: 20,  hex: "#FFB3CC" },
-    { ppm: 40,  hex: "#FF8AB0" },
-    { ppm: 80,  hex: "#FF5C93" },
-    { ppm: 160, hex: "#D72657" }
-  ]
-};
-function loadCustomScales(){ try{ return JSON.parse(localStorage.getItem(CUSTOM_SCALES_KEY) || "{}"); } catch{ return {}; } }
-function saveCustomScales(obj){ localStorage.setItem(CUSTOM_SCALES_KEY, JSON.stringify(obj || {})); }
-function getAllScales(){ return { ...BUILTIN_SCALES, ...loadCustomScales() }; }
-function buildScaleSelect(){
-  const select = document.getElementById("scaleSelect");
-  if (!select) return;
-  const all = getAllScales();
-  const selected = localStorage.getItem(SELECTED_SCALE_KEY) || "NCF Standard";
-  select.innerHTML = "";
-  Object.keys(all).forEach(name => {
-    const opt = document.createElement("option");
-    opt.value = name; opt.textContent = name;
-    if (name === selected) opt.selected = true;
-    select.appendChild(opt);
-  });
-  select.addEventListener("change", () => localStorage.setItem(SELECTED_SCALE_KEY, select.value));
-}
-
-// Lab conversion & deltaE
-function hexToRgb(hex){ const m=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex); if(!m) return {r:0,g:0,b:0}; return {r:parseInt(m[1],16), g:parseInt(m[2],16), b:parseInt(m[3],16)}; }
-function srgbToLinear(c){ c/=255; return (c<=0.04045)? c/12.92 : Math.pow((c+0.055)/1.055, 2.4); }
-function rgbToXyz({r,g,b}){ const R=srgbToLinear(r), G=srgbToLinear(g), B=srgbToLinear(b); return {
-  X: R*0.4124564 + G*0.3575761 + B*0.1804375,
-  Y: R*0.2126729 + G*0.7151522 + B*0.0721750,
-  Z: R*0.0193339 + G*0.1191920 + B*0.9503041
-}; }
-function xyzToLab({X,Y,Z}){ const Xn=0.95047, Yn=1.00000, Zn=1.08883; function f(t){ return t>0.008856? Math.cbrt(t):(7.787*t+16/116); }
-  const fx=f(X/Xn), fy=f(Y/Yn), fz=f(Z/Zn);
-  const L=(Y/Yn>0.008856)? 116*Math.cbrt(Y/Yn)-16 : 903.3*(Y/Yn);
-  return { L, a:500*(fx-fy), b:200*(fy-fz) };
-}
-function rgbToLab(rgb){ return xyzToLab(rgbToXyz(rgb)); }
-function deltaE76(l1,l2){ const dL=l1.L-l2.L, da=l1.a-l2.a, db=l1.b-l2.b; return Math.sqrt(dL*dL+da*da+db*db); }
-
-function estimateNitrateFromColor(hex, scaleName){
-  const scale = getAllScales()[scaleName] || BUILTIN_SCALES["NCF Standard"];
-  const lab = rgbToLab(hexToRgb(hex));
-  const ranked = scale.map(e => ({...e, d: deltaE76(lab, rgbToLab(hexToRgb(e.hex)))})).sort((a,b)=>a.d-b.d);
-  const best = ranked[0]; const next = ranked[1] || best;
-  if (best.d < 1) return best.ppm;
-  const w1 = 1/Math.max(1e-6, best.d), w2 = 1/Math.max(1e-6, next.d);
-  return Math.round((best.ppm*w1 + next.ppm*w2)/(w1+w2));
-}
-
-// ================== History ==================
-function getHistory(){ try{ return JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]"); } catch{ return []; } }
-function setHistory(arr){ localStorage.setItem(HISTORY_KEY, JSON.stringify(arr)); }
-function addHistory(entry){ const arr=getHistory(); arr.unshift(entry); setHistory(arr); }
-
-// ================== Analysis Page ==================
-function setupAnalysisPage(){
-  const canvas = document.getElementById("canvas");
-  const roiCanvas = document.getElementById("roiCanvas");
-  if (!canvas || !roiCanvas) return; // not on analysis page
-
-  const fileInput = document.getElementById("fileInput");
-  const captureBtn= document.getElementById("captureFromCamera");
-  const stopBtn   = document.getElementById("stopCamera");
-  const analyzeBtn= document.getElementById("analyzeBtn");
-  const saveBtn   = document.getElementById("saveResultBtn");
-
-  const video     = document.getElementById("video");
-  const canvasWrap= document.getElementById("canvasWrap");
-  const preview   = document.getElementById("preview");
-
-  const sampleInput = document.getElementById("sampleInput");
-  const reagentInput= document.getElementById("reagentInput");
-  const scaleSelect = document.getElementById("scaleSelect");
-  const manageScalesBtn = document.getElementById("manageScalesBtn");
-
-  const sampleStep   = document.getElementById("sampleStep");
-  const sampleStepVal= document.getElementById("sampleStepVal");
-  const roiRadios    = document.querySelectorAll('input[name="roiMode"]');
-
-  const colorBox   = document.getElementById("colorBox");
-  const colorValue = document.getElementById("colorValue");
-  const nitrateValue = document.getElementById("nitrateValue");
-
-  buildScaleSelect();
-
-  let stream = null, roiMode = "full", drawing = false, roiRect = null;
-
-  // ROI radio change
-  roiRadios.forEach(r => r.addEventListener("change", () => { roiMode = document.querySelector('input[name="roiMode"]:checked').value; drawOverlay(); }));
-
-  // Sampling step UI
-  if (sampleStep && sampleStepVal){
-    sampleStep.addEventListener("input", ()=> sampleStepVal.textContent = `${sampleStep.value} px`);
-    sampleStepVal.textContent = `${sampleStep.value} px`;
-  }
-
-  // Camera
-  async function startCamera(){
-    try{
-      stream = await navigator.mediaDevices.getUserMedia({video:true, audio:false});
-      video.style.display = "block"; preview.style.display = "none"; canvasWrap.style.display = "none";
-      video.srcObject = stream;
-    }catch(err){ alert("Camera access failed: " + err.message); }
-  }
-  function stopCamera(){ if (stream){ for(const t of stream.getTracks()) t.stop(); stream=null; } video.style.display="none"; }
-
-  captureBtn?.addEventListener("click", startCamera);
-  stopBtn?.addEventListener("click", stopCamera);
-
-  // Upload
-  fileInput?.addEventListener("change", (e) => {
-    const file = e.target.files?.[0]; if (!file) return;
-    const url = URL.createObjectURL(file);
-    preview.src = url; preview.onload = () => URL.revokeObjectURL(url);
-    preview.style.display = "block";
-    const img = new Image();
-    img.onload = () => {
-      canvas.width = img.width; canvas.height = img.height;
-      roiCanvas.width = img.width; roiCanvas.height = img.height;
-      canvas.getContext("2d").drawImage(img, 0, 0);
-      canvasWrap.style.display = "inline-block";
-      video.style.display = "none";
-      drawOverlay();
-    };
-    img.src = preview.src;
-  });
-
-  // Analyze
-  analyzeBtn?.addEventListener("click", () => {
-    if (video.style.display === "block" && stream){
-      const ctx = canvas.getContext("2d");
-      canvas.width = video.videoWidth || 320; canvas.height = video.videoHeight || 240;
-      roiCanvas.width = canvas.width; roiCanvas.height = canvas.height;
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      canvasWrap.style.display = "inline-block";
-      drawOverlay();
+  function csv_buildState(matrix){
+    if (!matrix.length){
+      CSV_HEADERS = [];
+      CSV_ROWS = [];
+      CSV_FILTERED = [];
+      CSV_TYPES = [];
+      CSV_SORT_COL = -1; CSV_SORT_DIR = 1; CSV_PAGE = 1;
+      csv_render();
+      return;
     }
-    analyzeCanvas();
-  });
-
-  // ROI drawing
-  roiCanvas.addEventListener("mousedown", e => {
-    if (roiMode !== "draw") return;
-    drawing = true;
-    const p = getMousePos(roiCanvas, e);
-    roiRect = { x:p.x, y:p.y, w:0, h:0 };
-    drawOverlay();
-  });
-  roiCanvas.addEventListener("mousemove", e => {
-    if (!drawing || roiMode !== "draw") return;
-    const p = getMousePos(roiCanvas, e);
-    roiRect.w = p.x - roiRect.x; roiRect.h = p.y - roiRect.y;
-    drawOverlay();
-  });
-  window.addEventListener("mouseup", () => { if (drawing){ drawing=false; analyzeCanvas(); } });
-
-  function getMousePos(canvasEl, evt){
-    const r = canvasEl.getBoundingClientRect();
-    return { x: Math.round((evt.clientX - r.left) * (canvasEl.width / r.width)),
-             y: Math.round((evt.clientY - r.top)  * (canvasEl.height / r.height)) };
-  }
-  function drawOverlay(){
-    const ctx = roiCanvas.getContext("2d");
-    ctx.clearRect(0,0,roiCanvas.width,roiCanvas.height);
-    if (roiMode === "draw" && roiRect){
-      const x = Math.min(roiRect.x, roiRect.x + roiRect.w);
-      const y = Math.min(roiRect.y, roiRect.y + roiRect.h);
-      const w = Math.abs(roiRect.w), h = Math.abs(roiRect.h);
-      ctx.fillStyle = "rgba(0, 153, 255, 0.18)"; ctx.fillRect(x,y,w,h);
-      ctx.strokeStyle = "#0099ff"; ctx.lineWidth = 2; ctx.strokeRect(x,y,w,h);
-    } else if (roiMode === "center"){
-      const w = Math.round(canvas.width * 0.5);
-      const h = Math.round(canvas.height* 0.5);
-      const x = Math.round((canvas.width - w)/2);
-      const y = Math.round((canvas.height- h)/2);
-      ctx.fillStyle = "rgba(0, 153, 255, 0.15)"; ctx.fillRect(x,y,w,h);
-      ctx.strokeStyle = "#0099ff"; ctx.lineWidth = 2; ctx.strokeRect(x,y,w,h);
-    }
-  }
-
-  function analyzeCanvas(){
-    const ctx = canvas.getContext("2d");
-    const { width, height } = canvas; if (!width || !height) return;
-
-    // ROI bounds
-    let x0=0, y0=0, w=width, h=height;
-    if (roiMode === "center"){
-      w=Math.round(width*0.5); h=Math.round(height*0.5);
-      x0=Math.round((width-w)/2); y0=Math.round((height-h)/2);
-    } else if (roiMode === "draw" && roiRect){
-      const x = Math.min(roiRect.x, roiRect.x + roiRect.w);
-      const y = Math.min(roiRect.y, roiRect.y + roiRect.h);
-      w = Math.max(1, Math.abs(roiRect.w)); h = Math.max(1, Math.abs(roiRect.h));
-      x0 = Math.max(0, Math.min(width-1, x)); y0 = Math.max(0, Math.min(height-1, y));
-      if (x0 + w > width) w = width - x0;
-      if (y0 + h > height) h = height - y0;
-    }
-
-    const step = parseInt(sampleStep?.value || "10", 10);
-    let r=0,g=0,b=0,count=0;
-    for (let y=y0; y<y0+h; y+=step){
-      for (let x=x0; x<x0+w; x+=step){
-        const d = ctx.getImageData(x,y,1,1).data;
-        r += d[0]; g += d[1]; b += d[2]; count++;
+    CSV_HEADERS = matrix[0].map(h => String(h).trim());
+    const body = matrix.slice(1);
+    CSV_TYPES = csv_inferTypes(CSV_HEADERS, body);
+    CSV_ROWS = body.map(r => {
+      const obj = {};
+      for (let i=0; i<CSV_HEADERS.length; i++){
+        obj[CSV_HEADERS[i] || `col_${i+1}`] = r[i] ?? "";
       }
-    }
-    if (!count) return;
-    r = Math.round(r/count); g = Math.round(g/count); b = Math.round(b/count);
-    const hex = "#" + [r,g,b].map(v => v.toString(16).padStart(2,"0")).join("");
-
-    colorBox.style.background = hex;
-    colorValue.dataset.value = `${hex} (rgb ${r},${g},${b})`;
-    colorValue.textContent = `${i18n[CURRENT_LANG].colorValuePrefix}${colorValue.dataset.value}`;
-
-    const scaleName = (scaleSelect?.value) || "NCF Standard";
-    const nitrate = estimateNitrateFromColor(hex, scaleName);
-    nitrateValue.dataset.value = `${nitrate} ppm`;
-    nitrateValue.textContent = `${i18n[CURRENT_LANG].nitrateValuePrefix}${nitrateValue.dataset.value}`;
+      return obj;
+    });
+    CSV_FILTERED = CSV_ROWS.slice();
+    CSV_SORT_COL = -1; CSV_SORT_DIR = 1; CSV_PAGE = 1;
+    csv_render();
   }
 
-  // Save result
-  document.getElementById("saveResultBtn")?.addEventListener("click", () => {
-    const ctext = colorValue?.dataset?.value;
-    const ntext = nitrateValue?.dataset?.value;
-    if (!ctext || !ntext){ alert("Please analyze first."); return; }
-
-    const hexMatch = ctext.match(/#([0-9a-f]{6})/i);
-    const rgbMatch = ctext.match(/rgb\s*([0-9]+),\s*([0-9]+),\s*([0-9]+)/i);
-    const ppmMatch = ntext.match(/(\d+)\s*ppm/i);
-    const entry = {
-      date: new Date().toISOString(),
-      sample: (sampleInput?.value?.trim()) || "",
-      reagent: (reagentInput?.value?.trim()) || (scaleSelect?.value || ""),
-      scale:   (scaleSelect?.value || ""),
-      color: hexMatch ? "#" + hexMatch[1] : "",
-      rgb: rgbMatch ? `${rgbMatch[1]},${rgbMatch[2]},${rgbMatch[3]}` : "",
-      nitrate_ppm: ppmMatch ? parseInt(ppmMatch[1],10) : null
-    };
-    addHistory(entry);
-    alert("Saved to history.");
-  });
-
-  // Scales modal
-  setupScaleModal();
-  function setupScaleModal(){
-    const modal = document.getElementById("scaleModalBackdrop");
-    const openBtn = manageScalesBtn;
-    const close1 = document.getElementById("closeScaleModal");
-    const close2 = document.getElementById("closeScaleModal2");
-    const addBtn  = document.getElementById("addScaleBtn");
-    const exportBtn = document.getElementById("exportScalesBtn");
-    const deleteBtn = document.getElementById("deleteScaleBtn");
-    const nameInput = document.getElementById("customScaleName");
-    const textArea  = document.getElementById("customScaleText");
-
-    function open(){ modal.style.display = "flex"; }
-    function close(){ modal.style.display = "none"; }
-
-    openBtn?.addEventListener("click", open);
-    close1?.addEventListener("click", close);
-    close2?.addEventListener("click", close);
-    modal?.addEventListener("click", (e)=>{ if (e.target===modal) close(); });
-
-    addBtn?.addEventListener("click", () => {
-      const name = (nameInput.value || "").trim();
-      const raw  = (textArea.value || "").trim();
-      if (!name || !raw){ alert("Please fill name and data."); return; }
-      let data = null;
-      try{
-        if (raw.trim().startsWith("[")) {
-          data = JSON.parse(raw);
-        } else {
-          const rows = raw.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
-          data = rows.map(line => {
-            const [ppm, hex] = line.split(/[,\s]+/);
-            return { ppm: Number(ppm), hex: hex.startsWith("#")? hex:("#"+hex) };
-          });
+  // --- Filtering / sorting / pagination
+  function csv_applyFilter(){
+    if (!$("csvTable")) return;
+    const q = ($("searchInput")?.value || "").toLowerCase().trim();
+    if (!q){ CSV_FILTERED = CSV_ROWS.slice(); }
+    else {
+      CSV_FILTERED = CSV_ROWS.filter(obj => {
+        for (const k of CSV_HEADERS){
+          const v = obj[k];
+          if (v!=null && String(v).toLowerCase().includes(q)) return true;
         }
-        if (!Array.isArray(data) || !data.length) throw new Error("Invalid data");
-        data.forEach(e => {
-          if (typeof e.ppm!=="number" || !/^#?[0-9a-f]{6}$/i.test(e.hex.replace("#",""))) throw new Error("Invalid row");
-          if (!e.hex.startsWith("#")) e.hex = "#" + e.hex;
-        });
-      }catch(err){
-        alert("Failed to parse data: " + err.message);
-        return;
-      }
-      const custom = loadCustomScales();
-      custom[name] = data;
-      saveCustomScales(custom);
-      buildScaleSelect();
-      alert("Scale saved.");
+        return false;
+      });
+    }
+    CSV_PAGE = 1;
+  }
+
+  function csv_compare(a, b, t){
+    if (t === "number"){
+      const na = parseFloat(a); const nb = parseFloat(b);
+      if (isNaN(na) && isNaN(nb)) return 0;
+      if (isNaN(na)) return -1;
+      if (isNaN(nb)) return 1;
+      return na - nb;
+    }
+    const sa = String(a).toLowerCase();
+    const sb = String(b).toLowerCase();
+    return sa < sb ? -1 : sa > sb ? 1 : 0;
+  }
+
+  function csv_render(){
+    const thead = $("csvThead");
+    const tbody = $("csvTbody");
+    const wrap  = $("tableWrap");
+    const empty = $("emptyState");
+    if (!thead || !tbody || !wrap || !empty) return; // Not on CSV page
+
+    if (!CSV_HEADERS.length){
+      thead.innerHTML = "";
+      tbody.innerHTML = "";
+      wrap.style.display = "none";
+      empty.style.display = "block";
+      csv_updatePageInfo();
+      return;
+    }
+
+    wrap.style.display = "block";
+    empty.style.display = "none";
+
+    // Headers with sort icons
+    thead.innerHTML = "<tr>" + CSV_HEADERS.map((h, i) => {
+      const arrow = (i===CSV_SORT_COL) ? (CSV_SORT_DIR>0 ? "north" : "south") : "unfold_more";
+      return `<th role="columnheader" tabindex="0" data-idx="${i}">
+        <span>${h}</span>
+        <span class="material-symbols-rounded" style="font-size:18px; opacity:.8; vertical-align:middle">${arrow}</span>
+      </th>`;
+    }).join("") + "</tr>";
+
+    // Body segment
+    const start = (CSV_PAGE - 1) * CSV_PER_PAGE;
+    const segment = CSV_FILTERED.slice(start, start + CSV_PER_PAGE);
+    tbody.innerHTML = segment.map(row => {
+      return "<tr>" + CSV_HEADERS.map(h => `<td>${row[h] ?? ""}</td>`).join("") + "</tr>";
+    }).join("");
+
+    // Sort handlers
+    thead.querySelectorAll("th").forEach(th => {
+      th.addEventListener("click", () => {
+        const idx = +th.getAttribute("data-idx");
+        if (idx === CSV_SORT_COL) CSV_SORT_DIR *= -1;
+        else { CSV_SORT_COL = idx; CSV_SORT_DIR = 1; }
+        const key = CSV_HEADERS[idx];
+        const t = CSV_TYPES[idx] || "string";
+        CSV_FILTERED.sort((ra, rb) => CSV_SORT_DIR * csv_compare(ra[key], rb[key], t));
+        csv_render();
+      });
+      th.addEventListener("keydown", (ev) => {
+        if (ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); th.click(); }
+      });
     });
 
-    exportBtn?.addEventListener("click", () => {
-      const custom = loadCustomScales();
-      const blob = new Blob([JSON.stringify(custom, null, 2)], {type:"application/json"});
+    csv_updatePageInfo();
+  }
+
+  function csv_updatePageInfo(){
+    const info = $("pageInfo");
+    if (!info || !$("csvTable")) return;
+    const L = csv_L();
+    const totalPages = Math.max(1, Math.ceil(CSV_FILTERED.length / CSV_PER_PAGE));
+    const curr = Math.min(CSV_PAGE, totalPages);
+    info.textContent = L.pageTpl(curr, totalPages);
+  }
+
+  function csv_clearAll(){
+    const fi = $("csvFileInput");
+    if (fi) fi.value = "";
+    CSV_HEADERS = [];
+    CSV_ROWS = [];
+    CSV_FILTERED = [];
+    CSV_SORT_COL = -1;
+    CSV_SORT_DIR = 1;
+    CSV_PAGE = 1;
+    csv_render();
+  }
+
+  // --- Wire up CSV only if page elements exist
+  document.addEventListener("DOMContentLoaded", () => {
+    if (!$("csvTable")) return; // Not on csv.html
+
+    // Apply localized labels
+    csv_applyI18n();
+
+    // Controls
+    on($("csvFileInput"), "change", async (e) => {
+      const f = e.target.files?.[0];
+      if (!f) return;
+      const text = await f.text();
+      const matrix = csv_parse(text);
+      csv_buildState(matrix);
+    });
+
+    on($("rowsPerPage"), "change", () => {
+      CSV_PER_PAGE = Math.max(1, +$("rowsPerPage").value || 50);
+      CSV_PAGE = 1;
+      csv_render();
+    });
+
+    on($("searchInput"), "input", () => { csv_applyFilter(); csv_render(); });
+
+    on($("prevPage"), "click", () => {
+      const total = Math.max(1, Math.ceil(CSV_FILTERED.length / CSV_PER_PAGE));
+      if (CSV_PAGE > 1){ CSV_PAGE--; csv_render(); }
+    });
+
+    on($("nextPage"), "click", () => {
+      const total = Math.max(1, Math.ceil(CSV_FILTERED.length / CSV_PER_PAGE));
+      if (CSV_PAGE < total){ CSV_PAGE++; csv_render(); }
+    });
+
+    on($("downloadBtn"), "click", () => {
+      if (!CSV_HEADERS.length) return;
+      const arr = [CSV_HEADERS].concat(CSV_FILTERED.map(r => CSV_HEADERS.map(h => r[h] ?? "")));
+      const csv = csv_toCSV(arr);
+      const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = url; a.download = "custom_scales.json";
-      document.body.appendChild(a); a.click();
-      document.body.removeChild(a); URL.revokeObjectURL(url);
+      a.href = url; a.download = "filtered.csv"; a.click();
+      URL.revokeObjectURL(url);
     });
 
-    deleteBtn?.addEventListener("click", () => {
-      const name = (nameInput.value || "").trim();
-      const custom = loadCustomScales();
-      if (!name || !(name in custom)){ alert("Scale not found (custom only)."); return; }
-      if (confirm(`Delete custom scale "${name}"?`)){
-        delete custom[name]; saveCustomScales(custom); buildScaleSelect(); alert("Scale deleted.");
-      }
-    });
-  }
-}
-
-// ================== Reports Page ==================
-function setupReportsPage(){
-  const container = document.getElementById("nitrateReports");
-  if (!container) return; // not on reports page
-
-  const sel = document.getElementById("filterReagent");
-  const inp = document.getElementById("filterSample");
-  const applyBtn = document.getElementById("applyFiltersBtn");
-  const resetBtn = document.getElementById("resetFiltersBtn");
-  const dlBtn = document.getElementById("downloadReportBtn");
-  const clearBtn = document.getElementById("clearHistoryBtn");
-
-  // Build reagent list
-  buildReagentFilter();
-  function buildReagentFilter(){
-    const hist = getHistory();
-    const set = new Set(hist.map(h => h.reagent || h.scale || "Unknown"));
-    sel.innerHTML = "";
-    const allOpt = document.createElement("option");
-    allOpt.value = "__ALL__"; allOpt.textContent = "All Reagents / ทุกรีเอเจนต์";
-    sel.appendChild(allOpt);
-    Array.from(set).sort().forEach(v => {
-      const opt = document.createElement("option");
-      opt.value = v; opt.textContent = v;
-      sel.appendChild(opt);
-    });
-  }
-
-  applyBtn?.addEventListener("click", () => { renderHistory(); renderChart(); });
-  resetBtn?.addEventListener("click", () => { sel.value="__ALL__"; inp.value=""; renderHistory(); renderChart(); });
-
-  dlBtn?.addEventListener("click", () => {
-    const rows = [["Date","Sample","Reagent/Scale","DominantColor","RGB","Nitrate(ppm)"]];
-    const data = getFilteredHistory();
-    if (data.length){
-      for (const h of data) rows.push([h.date, h.sample, h.reagent || h.scale || "", h.color, h.rgb, h.nitrate_ppm]);
-    } else {
-      rows.push([new Date().toISOString(),"","","#000000","","0"]);
-    }
-    const csv = rows.map(r => r.map(v => `"${String(v ?? "").replace(/"/g,'""')}"`).join(",")).join("\n");
-    const blob = new Blob([csv], {type: "text/csv;charset=utf-8;"});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = "nitrate_report.csv";
-    document.body.appendChild(a); a.click();
-    document.body.removeChild(a); URL.revokeObjectURL(url);
+    on($("clearBtn"), "click", csv_clearAll);
   });
 
-  clearBtn?.addEventListener("click", () => {
-    if (confirm("Clear all history?")) { setHistory([]); renderHistory(); renderChart(); buildReagentFilter(); }
-  });
-
-  renderHistory();
-  renderChart();
-
-  function getFilteredHistory(){
-    const reagent = sel.value;
-    const sampleQ = (inp.value || "").trim().toLowerCase();
-    let arr = getHistory();
-    if (reagent && reagent!=="__ALL__"){ arr = arr.filter(h => (h.reagent || h.scale || "") === reagent); }
-    if (sampleQ){ arr = arr.filter(h => (h.sample || "").toLowerCase().includes(sampleQ)); }
-    return arr.slice().sort((a,b)=> new Date(a.date) - new Date(b.date));
-  }
-
-  // Table
-  function renderHistory(){
-    const t = i18n[CURRENT_LANG];
-    const container = document.getElementById("nitrateReports");
-    container.innerHTML = "";
-    const data = getFilteredHistory();
-    if (!data.length){ const p=document.createElement("p"); p.textContent=t.noHistoryText; container.appendChild(p); return; }
-
-    const table = document.createElement("table");
-    table.style.width="100%"; table.style.borderCollapse="collapse"; table.style.background="#fff";
-    table.style.borderRadius="8px"; table.style.overflow="hidden";
-
-    const thead = document.createElement("thead");
-    const trh = document.createElement("tr");
-    t.tableHeaders.forEach(h => {
-      const th = document.createElement("th");
-      th.textContent = h; th.style.padding="10px"; th.style.borderBottom="1px solid #eee"; th.style.textAlign="left";
-      trh.appendChild(th);
-    });
-    thead.appendChild(trh);
-
-    const tbody = document.createElement("tbody");
-    data.slice().reverse().forEach(item => {
-      const tr = document.createElement("tr");
-      const tdDate = document.createElement("td"); tdDate.textContent = new Date(item.date).toLocaleString();
-      const tdSample = document.createElement("td"); tdSample.textContent = item.sample || "";
-      const tdReagent = document.createElement("td"); tdReagent.textContent = item.reagent || item.scale || "";
-      const tdColor = document.createElement("td");
-      const sw = document.createElement("span");
-      Object.assign(sw.style,{display:"inline-block",width:"18px",height:"18px",border:"1px solid #ccc",borderRadius:"4px",verticalAlign:"middle",marginRight:"8px",background:item.color || "#eee"});
-      tdColor.appendChild(sw); const ctext=document.createElement("span"); ctext.textContent=item.color || ""; tdColor.appendChild(ctext);
-      const tdRGB = document.createElement("td"); tdRGB.textContent = item.rgb || "";
-      const tdPPM = document.createElement("td"); tdPPM.textContent = (item.nitrate_ppm ?? "") + "";
-      [tdDate,tdSample,tdReagent,tdColor,tdRGB,tdPPM].forEach(td=>{ td.style.padding="10px"; td.style.borderBottom="1px solid #f3f3f3"; tr.appendChild(td); });
-      tbody.appendChild(tr);
-    });
-
-    table.appendChild(thead); table.appendChild(tbody);
-    container.appendChild(table);
-  }
-
-  // Chart
-  function renderChart(){
-    const ctx = document.getElementById("trendChart");
-    if (!ctx) return;
-    if (CURRENT_CHART){ CURRENT_CHART.destroy(); CURRENT_CHART=null; }
-    const data = getFilteredHistory();
-    const labels = data.map(d => new Date(d.date));
-    const series = data.map(d => d.nitrate_ppm ?? null);
-
-    if (!window.Chart){ return; } // guard when CDN blocked
-
-    CURRENT_CHART = new Chart(ctx, {
-      type: "line",
-      data: { labels, datasets: [{ label: "Nitrate (ppm)", data: series, pointRadius:3, tension:0.25 }] },
-      options: {
-        responsive:true, maintainAspectRatio:false, parsing:false,
-        scales: {
-          x: { type:"time", time:{ unit:"day" }, ticks:{ autoSkip:true, maxTicksLimit:8 } },
-          y: { beginAtZero:true, title:{ display:true, text:"ppm" } }
-        },
-        plugins: { legend:{ display:true }, tooltip:{ mode:"index", intersect:false } }
-      }
-    });
-  }
-
-  // expose
-  window.renderHistory = renderHistory;
-  window.renderChart = renderChart;
-}
+})();
