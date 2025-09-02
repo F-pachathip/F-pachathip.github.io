@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>สมัครสมาชิก — LabCam</title>
+  <link rel="stylesheet" href="style.css" />
+  <script defer src="script.js"></script>
+</head>
+<body data-page="register">
+  <header class="site-header">
+    <div class="brand"><a href="index.html" class="brand-link">LabCam</a></div>
+  </header>
+
+  <main class="container">
+    <section class="card" style="max-width:520px;margin:30px auto;">
+      <h1 data-i18n="nav_register">สมัครสมาชิก</h1>
+      <form id="registerForm" class="form-grid">
+        <label>
+          <span data-i18n="label_name">ชื่อ</span>
+          <input id="regName" required />
+        </label>
+        <label>
+          <span>Email</span>
+          <input id="regEmail" type="email" required />
+        </label>
+        <label>
+          <span data-i18n="label_password">รหัสผ่าน (≥6 ตัว)</span>
+          <input id="regPassword" type="password" required minlength="6" />
+        </label>
+        <button class="btn btn-primary" type="submit" data-i18n="nav_register">สมัครสมาชิก</button>
+        <p class="hint">
+          <a href="login.html" data-i18n="nav_login">เข้าสู่ระบบ</a>
+        </p>
+      </form>
+      <p id="registerError" class="hint" style="color:#f87171;"></p>
+    </section>
+  </main>
+
+  <footer class="site-footer"><span>&copy; 2025 LabCam</span></footer>
+</body>
+</html>

@@ -1,84 +1,80 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>AI Color & Nitrate Detector - Home</title>
-
-  <!-- ฟอนต์ไทย/อังกฤษ + ไอคอน -->
-  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" rel="stylesheet"/>
-
-  <!-- Critical fallback (เอาออกอัตโนมัติเมื่อ style.css โหลดสำเร็จ) -->
-  <style id="critical-style">
-    *{box-sizing:border-box} html,body{margin:0}
-    body{font-family:'Kanit',system-ui,Arial,sans-serif;background:#0b1220;color:#e7eaf1}
-    .header{padding:16px 20px;text-align:center;font-weight:700}
-    .content{padding:24px}
-  </style>
-
-  <!-- สไตล์หลัก (มี cache-busting และ auto-fallback path) -->
-  <link id="site-style" rel="stylesheet" href="./style.css?v=20250901">
-  <script>
-    (function(){const link=document.getElementById('site-style');const crit=document.getElementById('critical-style');
-      const paths=["./style.css","style.css","css/style.css","/style.css"];let i=0;
-      const kill=()=>{crit&&crit.remove();}; link.addEventListener('load',kill);
-      link.addEventListener('error',()=>{if(++i<paths.length) link.href=paths[i]+"?v="+Date.now();});
-      setTimeout(kill,2000);
-    })();
-  </script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LabCam — Intro</title>
+  <meta name="description" content="LabCam: เว็บแอพสแกนแถบทดสอบ วิเคราะห์สี บันทึกผล ดูรายงานพร้อมกราฟ (รองรับล็อกอิน/ฐานข้อมูล)" />
+  <link rel="canonical" href="index.html" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="style.css" />
+  <script defer src="script.js"></script>
 </head>
-<body>
-  <aside class="navbar">
-    <div class="brand">
-      <div class="brand-mark"><span class="material-symbols-rounded">science</span></div>
-      <div class="brand-text">
-        <strong>AI Nitrate</strong>
-        <small>Detector Suite</small>
-      </div>
-    </div>
-
-    <button class="hamburger" onclick="toggleMenu()" aria-label="Menu">
+<body data-page="index">
+  <header class="site-header">
+    <div class="brand"><a href="index.html" class="brand-link">LabCam</a></div>
+    <button class="hamburger" aria-label="Toggle navigation" aria-controls="site-nav" aria-expanded="false">
       <span></span><span></span><span></span>
     </button>
+    <nav>
+      <ul class="navlist" id="site-nav">
+        <li><a data-i18n="nav_home" href="index.html" class="active">หน้าแรก</a></li>
+        <li><a data-i18n="nav_analysis" href="analysis.html">วิเคราะห์</a></li>
+        <li><a data-i18n="nav_reports" href="reports.html">รายงาน</a></li>
+        <li><a data-i18n="nav_csv" href="csv.html">CSV Vault</a></li>
+      </ul>
+    </nav>
 
-    <ul class="navlist">
-      <li><a class="active-link" href="index.html"><span class="material-symbols-rounded">home</span> Home</a></li>
-      <li><a href="analysis.html"><span class="material-symbols-rounded">colorize</span> Analysis</a></li>
-      <li><a href="reports.html"><span class="material-symbols-rounded">analytics</span> Reports</a></li>
-      <!-- เพิ่มลิงก์ไปหน้า CSV Vault -->
-      <li><a href="csv.html"><span class="material-symbols-rounded">table</span> CSV Vault</a></li>
-    </ul>
+    <div class="auth">
+      <a id="loginLink" class="btn btn-ghost" href="login.html" data-i18n="nav_login">เข้าสู่ระบบ</a>
+      <a id="registerLink" class="btn btn-ghost" href="register.html" data-i18n="nav_register">สมัครสมาชิก</a>
+      <button id="logoutBtn" class="btn btn-ghost" style="display:none" data-i18n="nav_logout">ออกจากระบบ</button>
+    </div>
 
     <div class="lang">
-      <button id="languageToggle" class="btn chip">ภาษาไทย</button>
+      <button id="langToggle" class="btn btn-ghost" aria-label="Toggle language">ภาษาไทย</button>
     </div>
-  </aside>
-
-  <header class="header glass">
-    <h1 id="headerText">Welcome to the AI Color & Nitrate Detector</h1>
   </header>
 
-  <main class="content container">
-    <section class="card hero">
-      <h2 id="welcomeText">Welcome to the AI Color & Nitrate Detection System</h2>
-      <p id="descriptionText" class="muted">
-        This system helps you analyze colors and detect nitrate levels in various samples using AI for accurate, reliable results.
+  <main class="container">
+    <section class="hero">
+      <h1 data-i18n="intro_title">สแกนแถบทดสอบ → วิเคราะห์สี → บันทึกผล → ดูกราฟ</h1>
+      <p class="lead" data-i18n="intro_sub">
+        เว็บแอพแบบสมาร์ท ใช้กล้องอุปกรณ์ของคุณ เลือก ROI, คำนวณสี และประมาณค่าความเข้มข้น (เช่น ไนเตรต) เก็บข้อมูลบนฐานข้อมูลของคุณอย่างปลอดภัย
       </p>
-      <ul class="feature-list">
-        <li id="featuresText" class="muted">Features include:</li>
-        <li id="feature1"><span class="material-symbols-rounded">bolt</span> Real-time color detection</li>
-        <li id="feature2"><span class="material-symbols-rounded">lab_panel</span> Nitrate level analysis</li>
-        <li id="feature3"><span class="material-symbols-rounded">insights</span> Comprehensive reports</li>
-        <li id="feature4"><span class="material-symbols-rounded">tune</span> Customizable settings</li>
-      </ul>
+      <div class="hero-actions">
+        <a href="analysis.html" class="btn btn-primary" data-i18n="intro_cta_analyze">เริ่มวิเคราะห์</a>
+        <a href="reports.html" class="btn" data-i18n="intro_cta_reports">ดูรายงาน</a>
+        <a href="register.html" class="btn btn-outline" data-i18n="intro_cta_signup">สมัคร/ล็อกอิน</a>
+      </div>
+    </section>
+
+    <section class="features grid-3">
+      <article class="card">
+        <h3 data-i18n="f1_title">วิเคราะห์จากกล้อง</h3>
+        <p data-i18n="f1_desc">เลือกพื้นที่สนใจ (ROI) ระบบจะคำนวณสีเฉลี่ยและจับคู่กับสเกลรีเอเจนต์</p>
+      </article>
+      <article class="card">
+        <h3 data-i18n="f2_title">บันทึกบนฐานข้อมูล</h3>
+        <p data-i18n="f2_desc">ผลทั้งหมดถูกเก็บต่อผู้ใช้ (per-user) ด้วยเซสชันและรหัสผ่านแบบแฮช</p>
+      </article>
+      <article class="card">
+        <h3 data-i18n="f3_title">กราฟและ CSV</h3>
+        <p data-i18n="f3_desc">สร้างกราฟแนวโน้มอัตโนมัติ และดาวน์โหลดข้อมูลเป็น CSV ได้ทันที</p>
+      </article>
+    </section>
+
+    <section class="note card">
+      <h3 data-i18n="intro_note_title">หมายเหตุ</h3>
+      <p data-i18n="intro_note_desc">
+        เครื่องมือนี้เพื่อการศึกษา/ทดสอบ ค่าประมาณขึ้นกับสเกล/สภาพแสง ควรสอบเทียบก่อนใช้งานจริง
+      </p>
     </section>
   </main>
 
-  <footer class="footer">
-    &copy; <span id="currentYear"></span> AI Color & Nitrate Detector. All Rights Reserved.
+  <footer class="site-footer">
+    <span>&copy; 2025 LabCam</span>
   </footer>
-
-  <script src="script.js"></script>
 </body>
 </html>

@@ -1,106 +1,80 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>AI Color & Nitrate Detector - Reports</title>
-
-  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" rel="stylesheet"/>
-
-  <style id="critical-style">
-    *{box-sizing:border-box} html,body{margin:0} body{font-family:'Kanit',system-ui,Arial,sans-serif;background:#0b1220;color:#e7eaf1}
-    .header{padding:16px 20px;text-align:center;font-weight:700}
-    .content{padding:24px}
-  </style>
-  <link id="site-style" rel="stylesheet" href="./style.css?v=20250901">
-  <script>
-    (function(){const l=document.getElementById('site-style');const c=document.getElementById('critical-style');
-      const p=["./style.css","style.css","css/style.css","/style.css"];let i=0;const kill=()=>{c&&c.remove();};
-      l.addEventListener('load',kill);l.addEventListener('error',()=>{if(++i<p.length) l.href=p[i]+"?v="+Date.now();});setTimeout(kill,2000);
-    })();
-  </script>
-
-  <!-- Charts -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LabCam — รายงาน</title>
+  <meta name="description" content="ดูสรุปผลที่บันทึก กรองข้อมูล สร้างกราฟ และดาวน์โหลด CSV (ต้องล็อกอิน)" />
+  <link rel="canonical" href="reports.html" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="style.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js" crossorigin="anonymous"></script>
+  <script defer src="script.js"></script>
 </head>
-<body>
-  <aside class="navbar">
-    <div class="brand">
-      <div class="brand-mark"><span class="material-symbols-rounded">science</span></div>
-      <div class="brand-text">
-        <strong>AI Nitrate</strong>
-        <small>Detector Suite</small>
-      </div>
+<body data-page="reports">
+  <header class="site-header">
+    <div class="brand"><a href="index.html" class="brand-link">LabCam</a></div>
+    <button class="hamburger" aria-label="Toggle navigation" aria-controls="site-nav" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <nav>
+      <ul class="navlist" id="site-nav">
+        <li><a data-i18n="nav_home" href="index.html">หน้าแรก</a></li>
+        <li><a data-i18n="nav_analysis" href="analysis.html">วิเคราะห์</a></li>
+        <li><a data-i18n="nav_reports" href="reports.html" class="active">รายงาน</a></li>
+        <li><a data-i18n="nav_csv" href="csv.html">CSV Vault</a></li>
+      </ul>
+    </nav>
+
+    <div class="auth">
+      <a id="loginLink" class="btn btn-ghost" href="login.html" data-i18n="nav_login">เข้าสู่ระบบ</a>
+      <a id="registerLink" class="btn btn-ghost" href="register.html" data-i18n="nav_register">สมัครสมาชิก</a>
+      <button id="logoutBtn" class="btn btn-ghost" style="display:none" data-i18n="nav_logout">ออกจากระบบ</button>
     </div>
-
-    <button class="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></button>
-
-    <ul class="navlist">
-      <li><a href="index.html"><span class="material-symbols-rounded">home</span> Home</a></li>
-      <li><a href="analysis.html"><span class="material-symbols-rounded">colorize</span> Analysis</a></li>
-      <li><a class="active-link" href="reports.html"><span class="material-symbols-rounded">analytics</span> Reports</a></li>
-      <!-- เพิ่มลิงก์ไปหน้า CSV Vault -->
-      <li><a href="csv.html"><span class="material-symbols-rounded">table</span> CSV Vault</a></li>
-    </ul>
 
     <div class="lang">
-      <button id="languageToggle" class="btn chip">ภาษาไทย</button>
+      <button id="langToggle" class="btn btn-ghost" aria-label="Toggle language">ภาษาไทย</button>
     </div>
-  </aside>
-
-  <header class="header glass">
-    <h1 id="headerText">Reports and Nitrate Levels</h1>
   </header>
 
-  <main class="content container">
-    <section class="card w-full">
-      <h2 id="reportsTitle" class="section-title">Reports on Nitrate Levels</h2>
-      <p id="reportsOverview" class="muted">
-        Browse comprehensive reports on nitrate levels detected in your samples. Use this information for quality control and trend analysis.
-      </p>
+  <main class="container">
+    <h1 data-i18n="reports_title">รายงานผล</h1>
 
-      <!-- Filters -->
-      <div class="toolbar">
-        <div class="form-row">
-          <label for="filterReagent">Reagent/Scale</label>
-          <select id="filterReagent"></select>
-        </div>
-        <div class="form-row">
-          <label for="filterSample">Sample</label>
-          <input id="filterSample" placeholder="Type to filter (optional)">
-        </div>
-        <div class="form-row">
-          <button id="applyFiltersBtn" class="btn btn-primary"><span class="material-symbols-rounded">filter_alt</span> Apply Filters</button>
-          <button id="resetFiltersBtn" class="btn btn-ghost"><span class="material-symbols-rounded">restart_alt</span> Reset</button>
-        </div>
+    <section class="card">
+      <div class="filters">
+        <label>
+          <span data-i18n="filter_reagent">รีเอเจนต์</span>
+          <select id="filterReagent">
+            <option value="" data-i18n="all">ทั้งหมด</option>
+          </select>
+        </label>
+        <label>
+          <span data-i18n="filter_sample">สิ่งตัวอย่าง</span>
+          <input id="filterSample" placeholder="เช่น น้ำ A" />
+        </label>
+        <button id="applyFiltersBtn" class="btn" data-i18n="btn_apply_filters">ใช้ตัวกรอง</button>
+        <button id="resetFiltersBtn" class="btn btn-ghost" data-i18n="btn_reset_filters">ล้างตัวกรอง</button>
+        <div class="spacer"></div>
+        <button id="downloadReportBtn" class="btn btn-outline" data-i18n="btn_download_csv">ดาวน์โหลด CSV</button>
+        <button id="clearHistoryBtn" class="btn btn-danger" data-i18n="btn_clear_history">ล้างประวัติทั้งหมด</button>
       </div>
+    </section>
 
-      <div class="card soft">
-        <h3 id="detailedReportTitle" class="section-subtitle">Detailed Report</h3>
-        <p id="detailedReportDesc" class="muted">Download a CSV summary of filtered analyses.</p>
-        <div class="btn-row">
-          <button id="downloadReportBtn" class="btn btn-outline"><span class="material-symbols-rounded">download</span> Download CSV</button>
-          <button id="clearHistoryBtn" class="btn btn-danger"><span class="material-symbols-rounded">delete</span> Clear History</button>
-        </div>
-      </div>
+    <section class="card">
+      <h3 data-i18n="chart_title">แนวโน้มตามเวลา</h3>
+      <canvas id="trendChart" height="220" aria-label="Trend chart"></canvas>
+    </section>
 
-      <div class="card soft">
-        <h3 id="historicalDataTitle" class="section-subtitle">Historical Data</h3>
-        <p id="historicalDataDesc" class="muted">Review historical data to track changes over time.</p>
-        <div class="chart-wrap">
-          <canvas id="trendChart" height="110"></canvas>
-        </div>
-        <div id="nitrateReports" style="margin-top:14px;"></div>
-      </div>
+    <section class="card">
+      <h3 data-i18n="list_title">รายการผล</h3>
+      <div id="nitrateReports" class="list"></div>
     </section>
   </main>
 
-  <footer class="footer">
-    &copy; <span id="currentYear"></span> AI Color & Nitrate Detector. All Rights Reserved.
+  <footer class="site-footer">
+    <span>&copy; 2025 LabCam</span>
   </footer>
-
-  <script src="script.js"></script>
 </body>
 </html>

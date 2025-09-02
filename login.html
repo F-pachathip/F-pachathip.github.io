@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>เข้าสู่ระบบ — LabCam</title>
+  <link rel="stylesheet" href="style.css" />
+  <script defer src="script.js"></script>
+</head>
+<body data-page="login">
+  <header class="site-header">
+    <div class="brand"><a href="index.html" class="brand-link">LabCam</a></div>
+  </header>
+
+  <main class="container">
+    <section class="card" style="max-width:520px;margin:30px auto;">
+      <h1 data-i18n="nav_login">เข้าสู่ระบบ</h1>
+      <form id="loginForm" class="form-grid">
+        <label>
+          <span>Email</span>
+          <input id="loginEmail" type="email" required />
+        </label>
+        <label>
+          <span data-i18n="label_password">รหัสผ่าน</span>
+          <input id="loginPassword" type="password" required minlength="6" />
+        </label>
+        <button class="btn btn-primary" type="submit" data-i18n="nav_login">เข้าสู่ระบบ</button>
+        <p class="hint">
+          <a href="register.html" data-i18n="nav_register">สมัครสมาชิก</a>
+        </p>
+      </form>
+      <p id="loginError" class="hint" style="color:#f87171;"></p>
+    </section>
+  </main>
+
+  <footer class="site-footer"><span>&copy; 2025 LabCam</span></footer>
+</body>
+</html>
