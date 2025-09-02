@@ -215,39 +215,164 @@ async function apiGetScales(){
   if(!r.ok) throw new Error('scales_fetch_failed');
   return r.json();
 }
+// === API: Scales & Results (ต่อจาก apiGetScales) ===
 async function apiCreateScale(name){
   const r = await fetch('/api/scales', {
     method:'POST',
+    headers:{ 'Content-Type':'application/json' },
+    credentials:'same-origin',
+    body: JSON.stringify({ name })
+  });
+  if(!r.ok) throw new Error('scale_create_failed');
+  return r.json();
+}
+
+async function apiAddScalePoint(scaleId, color, value){
+  const r = await fetch(`/api/scales/${scaleId}/points`, {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json' },
+    credentials:'same-origin',
+    body: JSON.stringify({ color: String(color).toUpperCase(), value: Number(value) })
+  });
+  if(!r.ok) throw new Error('add_point_failed');
+  return r.json();
+}
+
+async function apiClearScalePoints(scaleId){
+  const r = await fetch(`/api/scales/${scaleId}/points`, {
+    method:'DELETE',
+    credentials:'same-origin'
+  });
+  if(!r.ok) throw new Error('clear_points_failed');
+  return r.json();
+}
+
+async function apiDeleteScale(scaleId){
+  const r = await fetch(`/api/scales/${scaleId}`, {
+    method:'DELETE',
+    credentials:'same-origin'
+  });
+  if(!r.ok) throw new Error('delete_scale_failed');
+  return r.json();
+}
+
+async function apiGetResults(filters = {}){
+  const qs = new URLSearchParams(filters);
+  const r = await fetch(`/api/results?${qs.toString()}`, { credentials:'same-origin' });
+  if(!r.ok) throw new Error('results_fetch_failed');
+  return r.json();
+}
+
+async function apiAddResult(payload){
+  const r = await fetch('/api/results', {
+    method:'POST',
     headers:{'Content-Type':'application/json'},
     credentials:'same-origin',
-    body:
-  }
-  window.addEventListener('DOMContentLoaded', async () => {
-  setupCommon();
-  await setupAuthUI();
-  const page = document.body.getAttribute('data-page');
-  if (page === 'login') initLoginPage();
-  if (page === 'register') initRegisterPage();
-  if (page === 'analysis') initAnalysisPage();
-  if (page === 'reports') initReportsPage();
-  if (page === 'csv') initCsvPage();
-});
+    body: JSON.stringify(payload)
+  });
+  if(!r.ok) throw new Error('add_result_failed');
+  return r.json();
+}
+
+async function apiClearAllResults(){
+  const r = await fetch('/api/results', { method:'DELETE', credentials:'same-origin' });
+  if(!r.ok) throw new Error('clear_results_failed');
+  return r.json();
+}
+
+// === Page Inits ===
+// ทำให้หน้า login ใช้งานได้
 function initLoginPage(){
   const form = document.getElementById('loginForm');
-  const err = document.getElementById('loginError');
+  const err  = document.getElementById('loginError');
+  if(!form) return;
   form.addEventListener('submit', async (e)=>{
     e.preventDefault();
     err.textContent = '';
-    const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+    const email    = document.getElementById('loginEmail').value.trim().toLowerCase();
     const password = document.getElementById('loginPassword').value;
     const r = await fetch('/api/login', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       credentials:'same-origin',
-      body: JSON.stringify({email,password})
+      body: JSON.stringify({ email, password })
     });
     if(!r.ok){ err.textContent = 'อีเมลหรือรหัสผ่านไม่ถูกต้อง'; return; }
     const next = new URLSearchParams(location.search).get('next') || 'index.html';
     location.replace(next);
   });
 }
+
+// ทำให้หน้า register ใช้งานได้
+function initRegisterPage(){
+  const form = document.getElementById('registerForm');
+  const err  = document.getElementById('registerError');
+  if(!form) return;
+  form.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    err.textContent = '';
+    const name      = document.getElementById('regName').value.trim();
+    const email     = document.getElementById('regEmail').value.trim().toLowerCase();
+    const password  = document.getElementById('regPassword').value;
+    const r = await fetch('/api/register', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      credentials:'same-origin',
+      body: JSON.stringify({ name, email, password })
+    });
+    if(!r.ok){
+      const data = await r.json().catch(()=>({}));
+      err.textContent = data?.error === 'duplicate_email'
+        ? 'อีเมลนี้ถูกใช้แล้ว'
+        : 'สมัครสมาชิกไม่สำเร็จ';
+      return;
+    }
+    location.replace('index.html');
+  });
+}
+
+// กัน error ในเพจอื่นๆ ไว้ก่อน (ค่อยเติมฟังก์ชันจริงภายหลัง)
+function initAnalysisPage(){ /* TODO: กล้อง/ROI/คำนวณสี */ }
+function initReportsPage(){  /* TODO: โหลดกราฟ/ลิสต์ผล */ }
+function initCsvPage(){
+  // Quick impl. แสดงลิสต์ไฟล์จาก <script id="csv-data" type="application/json">
+  const node = document.getElementById('csv-data');
+  const list = document.getElementById('csvFileList');
+  const btnAll = document.getElementById('downloadAllBtn');
+  if(!node || !list) return;
+  const files = JSON.parse(node.textContent || '{}');
+  list.innerHTML = '';
+  Object.entries(files).forEach(([filename, content])=>{
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([content], { type:'text/csv' }));
+    a.download = filename;
+    a.className = 'btn btn-outline';
+    a.textContent = filename;
+    list.appendChild(a);
+  });
+  if(btnAll && window.JSZip){
+    btnAll.addEventListener('click', async ()=>{
+      const zip = new JSZip();
+      Object.entries(files).forEach(([filename, content])=>{
+        zip.file(filename, content);
+      });
+      const blob = await zip.generateAsync({ type:'blob' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'csv.zip';
+      a.click();
+    });
+  }
+}
+
+// === Bootstrap ทุกหน้า ===
+window.addEventListener('DOMContentLoaded', async ()=>{
+  setupCommon();
+  await setupAuthUI();
+  const page = document.body.getAttribute('data-page');
+  if(page === 'login')    initLoginPage();
+  if(page === 'register') initRegisterPage();
+  if(page === 'analysis') initAnalysisPage();
+  if(page === 'reports')  initReportsPage();
+  if(page === 'csv')      initCsvPage();
+});
