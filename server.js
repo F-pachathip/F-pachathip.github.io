@@ -30,6 +30,11 @@ if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 
 const SQLiteStore = SQLiteStoreFactory(session);
 
+// ถ้ารันหลัง proxy (เช่น Render/Railway/Nginx) ให้ไว้วางใจ proxy เพื่อให้ cookie.secure ใช้งานได้
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 // middlewares
 app.use(express.json({ limit: '8mb' }));
 app.use(express.urlencoded({ extended: true, limit: '8mb' }));
@@ -44,7 +49,8 @@ app.use(session({
   saveUninitialized: false,
   cookie: {
     maxAge: 1000*60*60*24*14, // 14 วัน
-    sameSite: 'lax'
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production' // ใช้ secure cookie เมื่อโปรดักชัน
   }
 }));
 
@@ -57,7 +63,7 @@ function requireAuth(req, res, next){
   next();
 }
 
-// API ---- Auth
+// ---------- Auth APIs ----------
 app.post('/api/register', async (req, res)=>{
   try{
     const { name, email, password } = req.body || {};
@@ -70,8 +76,16 @@ app.post('/api/register', async (req, res)=>{
     const hash = await bcrypt.hash(String(password), 10);
     const userId = await createUser({ name, email, password_hash: hash });
     await ensureDefaultScaleForUser(userId);
-    req.session.userId = userId;
-    res.json({ ok: true, user: { id: userId, name, email } });
+
+    // regenerate session เพื่อกัน fixation และให้แน่ใจว่าคุกกี้ถูกเซ็ต
+    req.session.regenerate(err=>{
+      if(err){ console.error(err); return res.status(500).json({ error: 'server_error' }); }
+      req.session.userId = userId;
+      req.session.save(err2=>{
+        if(err2){ console.error(err2); return res.status(500).json({ error: 'server_error' }); }
+        res.json({ ok: true, user: { id: userId, name, email } });
+      });
+    });
   }catch(e){
     console.error(e);
     res.status(500).json({ error: 'server_error' });
@@ -84,10 +98,19 @@ app.post('/api/login', async (req, res)=>{
     if(!email || !password) return res.status(400).json({ error: 'missing_fields' });
     const user = await getUserByEmail(email);
     if(!user) return res.status(401).json({ error: 'invalid_credentials' });
+
     const ok = await bcrypt.compare(String(password), user.password_hash);
     if(!ok) return res.status(401).json({ error: 'invalid_credentials' });
-    req.session.userId = user.id;
-    res.json({ ok: true, user: { id: user.id, name: user.name, email: user.email } });
+
+    // regenerate session เพื่อกัน fixation และให้แน่ใจว่าคุกกี้ถูกเซ็ต
+    req.session.regenerate(err=>{
+      if(err){ console.error(err); return res.status(500).json({ error: 'server_error' }); }
+      req.session.userId = user.id;
+      req.session.save(err2=>{
+        if(err2){ console.error(err2); return res.status(500).json({ error: 'server_error' }); }
+        res.json({ ok: true, user: { id: user.id, name: user.name, email: user.email } });
+      });
+    });
   }catch(e){
     console.error(e);
     res.status(500).json({ error: 'server_error' });
@@ -95,7 +118,11 @@ app.post('/api/login', async (req, res)=>{
 });
 
 app.post('/api/logout', (req, res)=>{
-  req.session.destroy(()=> res.json({ ok: true }));
+  // ทำลายเซสชันและเคลียร์คุกกี้
+  req.session.destroy(()=>{
+    res.clearCookie('connect.sid');
+    res.json({ ok: true });
+  });
 });
 
 app.get('/api/me', async (req, res)=>{
@@ -110,7 +137,7 @@ app.get('/api/me', async (req, res)=>{
   }
 });
 
-// API ---- Scales
+// ---------- Scales ----------
 app.get('/api/scales', requireAuth, async (req, res)=>{
   try{
     const out = await getScalesForUser(req.session.userId);
@@ -167,7 +194,7 @@ app.delete('/api/scales/:id/points', requireAuth, async (req, res)=>{
   }
 });
 
-// API ---- Results
+// ---------- Results ----------
 app.get('/api/results', requireAuth, async (req, res)=>{
   try{
     const { reagent = '', sample = '' } = req.query || {};
@@ -183,7 +210,10 @@ app.post('/api/results', requireAuth, async (req, res)=>{
   try{
     const { sample, reagent, avgHex, estimate, snapshot } = req.body || {};
     if(!sample || !reagent || !avgHex) return res.status(400).json({ error: 'missing_fields' });
-    const id = await addResult(req.session.userId, { sample, reagent, avgHex, estimate: (estimate==null? null : Number(estimate)), snapshot });
+    const id = await addResult(
+      req.session.userId,
+      { sample, reagent, avgHex, estimate: (estimate==null? null : Number(estimate)), snapshot }
+    );
     res.json({ ok: true, id });
   }catch(e){
     console.error(e);
@@ -201,7 +231,7 @@ app.delete('/api/results', requireAuth, async (req, res)=>{
   }
 });
 
-// fallback to index
+// fallback to index.html (GET เท่านั้น)
 app.get('*', (req, res)=>{
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
