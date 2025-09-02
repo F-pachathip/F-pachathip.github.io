@@ -1,323 +1,562 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>AI Color & Nitrate Detector - CSV</title>
-
-  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" rel="stylesheet"/>
-
-  <!-- Critical fallback -->
-  <style id="critical-style">
-    *{box-sizing:border-box} html,body{margin:0}
-    body{font-family:'Kanit',system-ui,Arial,sans-serif;background:#0b1220;color:#e7eaf1}
-    .header{padding:16px 20px;text-align:center;font-weight:700}
-    .content{padding:24px}
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CSV Viewer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card:#111a2bcc;
+      --muted:#a8b2c1;
+      --text:#e7eaf1;
+      --accent:#6aa0ff;
+      --border:#263044;
+      --ring:#7fb0ff;
+      --danger:#ff6b6b;
+      --ok:#23c55e;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0}
+    body{
+      font-family:'Kanit',system-ui,Segoe UI,Arial,sans-serif;
+      background: radial-gradient(1000px 600px at 20% -10%, #1a2750 0%, transparent 60%),
+                  radial-gradient(1000px 600px at 110% 10%, #0b5a72 0%, transparent 60%),
+                  var(--bg);
+      color:var(--text);
+    }
+    .nav{
+      position:sticky;top:0;z-index:50;
+      backdrop-filter: blur(10px);
+      background: #0b1220cc;
+      border-bottom:1px solid var(--border);
+    }
+    .nav-in{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:10px 16px;max-width:1200px;margin:0 auto;
+    }
+    .brand{font-weight:700;letter-spacing:.3px}
+    .chip{font-size:12px;color:#c6d3e2;border:1px solid var(--border);padding:2px 8px;border-radius:999px}
+    .wrap{max-width:1200px;margin:20px auto;padding:0 16px}
+    .grid{
+      display:grid;grid-template-columns:1.2fr .8fr;gap:16px;
+    }
+    @media (max-width:980px){.grid{grid-template-columns:1fr}}
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:18px; padding:16px;
+      box-shadow: 0 10px 30px #00000044, inset 0 1px 0 #ffffff0c;
+    }
+    .card h2{margin:0 0 10px 0;font-size:18px}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    .row > *{flex:1}
+    label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px}
+    input[type="text"], input[type="url"], input[type="number"], select, textarea{
+      width:100%;background:#0c1628;border:1px solid var(--border);color:var(--text);
+      border-radius:12px;padding:10px 12px;outline:none;transition: box-shadow .15s,border .15s;
+    }
+    textarea{min-height:120px;resize:vertical}
+    input:focus, textarea:focus, select:focus{border-color:var(--ring); box-shadow:0 0 0 3px #7fb0ff33}
+    .btn{
+      display:inline-flex;gap:8px;align-items:center;justify-content:center;
+      border:1px solid var(--border); background:#0e1a2f; color:var(--text);
+      padding:10px 14px;border-radius:12px; cursor:pointer; user-select:none;
+      transition: transform .05s ease, background .15s ease, border .15s ease;
+      text-decoration:none;
+    }
+    .btn:hover{background:#142443}
+    .btn:active{transform:translateY(1px)}
+    .btn-primary{background:linear-gradient(180deg,#4d83ff,#2f6bff); border-color:#2f6bff}
+    .btn-danger{background:#3a0f16;border-color:#5a1c25;color:#ffd8d8}
+    .btn-ghost{background:transparent}
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:end}
+    .small{font-size:12px;color:var(--muted)}
+    .muted{color:var(--muted)}
+    .switch{display:flex;align-items:center;gap:8px}
+    .switch input{width:auto}
+    .table-wrap{
+      overflow:auto;border:1px solid var(--border);border-radius:14px;background:#0c1628;
+    }
+    table{border-collapse:separate;border-spacing:0;width:100%;min-width:800px}
+    thead th{
+      position:sticky;top:0;background:#0f1b33;z-index:1;
+      border-bottom:1px solid var(--border);
+      font-weight:600;font-size:13px; text-align:left; padding:10px 12px;
+      white-space:nowrap; cursor:pointer; user-select:none;
+    }
+    tbody td{
+      border-bottom:1px solid #1a2742;font-size:13px;padding:9px 12px;vertical-align:top
+    }
+    tr:nth-child(even) td{background:#0e1930}
+    .kpi{display:flex;gap:12px;flex-wrap:wrap;margin:8px 0}
+    .pill{border:1px solid var(--border);background:#0e1a2f;padding:6px 10px;border-radius:999px;font-size:12px}
+    .pagination{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .spacer{flex:1}
+    .right{display:flex;gap:8px;align-items:center}
+    .hide{display:none}
+    .error{color:#ffd6d6;background:#3a0f16;border:1px solid #5a1c25;padding:8px 10px;border-radius:10px}
+    .ok{color:#dcffe7;background:#0c2a16;border:1px solid #144e26;padding:8px 10px;border-radius:10px}
+    .th-sort{display:inline-flex;gap:6px;align-items:center}
+    .th-sort .arrow{font-size:10px;opacity:.7}
+    .th-sort .arrow.active{opacity:1}
   </style>
-  <!-- main style + fallback path -->
-  <link id="site-style" rel="stylesheet" href="./style.css?v=20250901">
-  <script>
-    (function(){const l=document.getElementById('site-style');const c=document.getElementById('critical-style');
-      const p=["./style.css","style.css","css/style.css","/style.css"];let i=0;const kill=()=>{c&&c.remove();};
-      l.addEventListener('load',kill);l.addEventListener('error',()=>{if(++i<p.length) l.href=p[i]+"?v="+Date.now();});setTimeout(kill,2000);
-    })();
-  </script>
 </head>
 <body>
-  <aside class="navbar">
-    <div class="brand">
-      <div class="brand-mark"><span class="material-symbols-rounded">science</span></div>
-      <div class="brand-text">
-        <strong>AI Nitrate</strong>
-        <small>Detector Suite</small>
+  <!-- Navbar -->
+  <div class="nav">
+    <div class="nav-in">
+      <div class="brand">CSV Viewer</div>
+      <div class="chip">ฝังไฟล์ CSV • โหลด/พิมพ์/URL • ค้นหา • เรียง • เพจิเนชัน</div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="grid">
+      <!-- Left: Inputs & Table -->
+      <div class="card">
+        <h2>ตารางข้อมูล</h2>
+
+        <!-- Toolbar -->
+        <div class="toolbar" style="margin-bottom:10px">
+          <div style="flex:1">
+            <label>ค้นหา/กรอง (พิมพ์เพื่อกรองแถว)</label>
+            <input id="search" type="text" placeholder="เช่น Apple / S24xxx / 2024-05-01 ..." />
+          </div>
+          <div>
+            <label>แถวต่อหน้า</label>
+            <select id="rowsPerPage">
+              <option>10</option>
+              <option selected>25</option>
+              <option>50</option>
+              <option>100</option>
+              <option value="0">ทั้งหมด</option>
+            </select>
+          </div>
+          <div class="switch">
+            <div>
+              <label>ตัวคั่น</label>
+              <select id="delimiter">
+                <option value="auto" selected>Auto</option>
+                <option value=",">Comma (,)</option>
+                <option value=";">Semicolon (;)</option>
+                <option value="\t">Tab (↹)</option>
+                <option value="|">Pipe (|)</option>
+              </select>
+            </div>
+            <div>
+              <label>ส่วนหัว</label>
+              <select id="hasHeader">
+                <option value="1" selected>มี</option>
+                <option value="0">ไม่มี</option>
+              </select>
+            </div>
+          </div>
+          <button id="downloadBtn" class="btn">ดาวน์โหลด CSV</button>
+        </div>
+
+        <!-- KPIs -->
+        <div class="kpi">
+          <div class="pill"><span id="kRows">0</span> แถว</div>
+          <div class="pill"><span id="kCols">0</span> คอลัมน์</div>
+          <div class="pill">เรียงโดย: <span id="kSort">—</span></div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-wrap">
+          <table id="table">
+            <thead id="thead"></thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <div class="pagination">
+            <button id="prevBtn" class="btn">ก่อนหน้า</button>
+            <div class="pill">หน้า <span id="pageNow">1</span>/<span id="pageTotal">1</span></div>
+            <button id="nextBtn" class="btn">ถัดไป</button>
+          </div>
+          <div class="spacer"></div>
+          <div class="small muted">เคล็ดลับ: คลิกหัวตารางเพื่อเรียงคอลัมน์ ↑↓</div>
+        </div>
+      </div>
+
+      <!-- Right: Loaders -->
+      <div class="card">
+        <h2>แหล่งข้อมูล</h2>
+
+        <div class="row">
+          <div>
+            <label>อัปโหลดไฟล์ .csv</label>
+            <input id="fileInput" type="file" accept=".csv,text/csv" />
+          </div>
+        </div>
+
+        <div style="margin-top:12px">
+          <label>วางข้อความ CSV ตรง ๆ</label>
+          <textarea id="pasteArea" placeholder='ตัวอย่าง:
+sale_id,date,brand,model,devices,usd_price
+S24001,2024-01-05,Apple,iPhone 15,phone,999
+S24002,2024-02-10,Lenovo,E310 True Wireless,headphones,39'></textarea>
+          <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+            <button id="loadPasteBtn" class="btn btn-primary">โหลดจากข้อความ</button>
+            <button id="clearPasteBtn" class="btn btn-ghost">ล้าง</button>
+          </div>
+        </div>
+
+        <div style="margin-top:16px">
+          <label>โหลดจาก URL (อาจติด CORS ถ้าเซิร์ฟเวอร์ไม่อนุญาต)</label>
+          <div class="row">
+            <input id="urlInput" type="url" placeholder="https://…/data.csv" />
+            <button id="loadUrlBtn" class="btn">โหลด URL</button>
+          </div>
+        </div>
+
+        <div style="margin-top:16px">
+          <label>ไฟล์ตัวอย่างในโฟลเดอร์เดียวกัน</label>
+          <div class="row">
+            <input value="salesdata_missing4.csv" disabled />
+            <button id="loadSampleBtn" class="btn">โหลดตัวอย่าง</button>
+          </div>
+          <div id="msg" class="small muted" style="margin-top:8px"></div>
+        </div>
+
+        <div style="margin-top:16px">
+          <div class="small">ต้องการฟีเจอร์เพิ่ม? เช่น freeze header หลายแถว, export เฉพาะที่กรองแล้ว, copy ทั้งแถวด้วยคลิกเดียว แจ้งได้เลย</div>
+        </div>
       </div>
     </div>
+  </div>
 
-    <button class="hamburger" onclick="toggleMenu()" aria-label="Menu"><span></span><span></span><span></span></button>
-
-    <ul class="navlist">
-      <li><a href="index.html"><span class="material-symbols-rounded">home</span> Home</a></li>
-      <li><a href="analysis.html"><span class="material-symbols-rounded">colorize</span> Analysis</a></li>
-      <li><a href="reports.html"><span class="material-symbols-rounded">analytics</span> Reports</a></li>
-      <li><a class="active-link" href="csv.html"><span class="material-symbols-rounded">table_view</span> CSV</a></li>
-    </ul>
-
-    <div class="lang">
-      <button id="languageToggle" class="btn chip">ภาษาไทย</button>
-    </div>
-  </aside>
-
-  <header class="header glass">
-    <h1 id="headerText">CSV Embed & Viewer</h1>
-  </header>
-
-  <main class="content container">
-    <section class="card w-full">
-      <h2 class="section-title">ฝัง/แสดงไฟล์ CSV</h2>
-      <p class="muted">เลือกหนึ่งวิธีด้านล่างเพื่อโหลดข้อมูล: อัปโหลดไฟล์, วางข้อความ CSV, หรือดึงจาก URL</p>
-
-      <!-- Controls -->
-      <div class="toolbar">
-        <div class="form-row">
-          <label class="file">
-            <input type="file" id="csvFileInput" accept=".csv,text/csv">
-            <span class="btn btn-outline"><span class="material-symbols-rounded">upload</span> อัปโหลด CSV</span>
-          </label>
-          <button id="loadSampleBtn" class="btn btn-ghost" title="ลองตัวอย่าง (ถ้ามีไฟล์อยู่ข้างๆ)">
-            <span class="material-symbols-rounded">dataset</span> โหลดตัวอย่าง (salesdata_missing4.csv)
-          </button>
-        </div>
-
-        <div class="form-row">
-          <label for="csvUrl">CSV URL</label>
-          <input id="csvUrl" placeholder="https://example.com/data.csv">
-          <button id="loadUrlBtn" class="btn btn-outline"><span class="material-symbols-rounded">download</span> โหลดจาก URL</button>
-        </div>
-
-        <div class="form-row" style="width:100%">
-          <label for="csvText">วางข้อความ CSV</label>
-          <textarea id="csvText" rows="6" style="width:100%" placeholder='เช่น
-header1,header2
-a,1
-b,2'></textarea>
-          <button id="loadTextBtn" class="btn btn-primary"><span class="material-symbols-rounded">play_circle</span> แสดงตาราง</button>
-        </div>
-      </div>
-
-      <!-- Options -->
-      <div class="card soft">
-        <h3 class="section-subtitle">ตัวเลือกการแสดงผล</h3>
-        <div class="form-row">
-          <label for="delimiter">ตัวคั่น</label>
-          <select id="delimiter">
-            <option value="auto">Auto</option>
-            <option value=",">Comma (,)</option>
-            <option value=";">Semicolon (;)</option>
-            <option value="tab">Tab</option>
-            <option value="|">Pipe (|)</option>
-          </select>
-
-          <label class="radio"><input type="checkbox" id="hasHeader" checked> แถวแรกเป็นหัวตาราง</label>
-
-          <label for="pageSize">แถวต่อหน้า</label>
-          <select id="pageSize">
-            <option>25</option><option>50</option><option selected>100</option><option>200</option>
-          </select>
-
-          <label for="searchBox">ค้นหา</label>
-          <input id="searchBox" placeholder="พิมพ์เพื่อกรองแถว">
-          <button id="downloadBtn" class="btn btn-outline"><span class="material-symbols-rounded">save</span> ดาวน์โหลดเป็น CSV</button>
-        </div>
-      </div>
-
-      <!-- Summary -->
-      <p class="muted" id="summary" style="margin:10px 0 6px 0;">ยังไม่ได้โหลดข้อมูล</p>
-
-      <!-- Table -->
-      <div class="chart-wrap" style="overflow:auto;">
-        <table id="csvTable">
-          <thead></thead>
-          <tbody></tbody>
-        </table>
-      </div>
-
-      <!-- Pagination -->
-      <div class="form-row" style="justify-content:flex-end; margin-top:10px">
-        <button id="prevPage" class="btn btn-ghost"><span class="material-symbols-rounded">chevron_left</span> ก่อนหน้า</button>
-        <span class="badge" id="pageInfo">0 / 0</span>
-        <button id="nextPage" class="btn btn-ghost">ถัดไป <span class="material-symbols-rounded">chevron_right</span></button>
-      </div>
-    </section>
-  </main>
-
-  <footer class="footer">
-    &copy; <span id="currentYear"></span> AI Color & Nitrate Detector. All Rights Reserved.
-  </footer>
-
-  <!-- ใช้สคริปต์หลักของไซต์ -->
-  <script src="script.js"></script>
-
-  <!-- สคริปต์เฉพาะของหน้า CSV -->
   <script>
   (function(){
-    const $ = (s)=>document.querySelector(s);
-    const csvTable = $('#csvTable');
-    const thead = csvTable.querySelector('thead');
-    const tbody = csvTable.querySelector('tbody');
-    const summary = $('#summary');
-    const searchBox = $('#searchBox');
-    const hasHeader = $('#hasHeader');
-    const delimiterSel = $('#delimiter');
-    const pageSizeSel = $('#pageSize');
-    const pageInfo = $('#pageInfo');
-    const prevBtn = $('#prevPage');
-    const nextBtn = $('#nextPage');
+    // --------- Utilities ----------
+    const $ = (sel,ctx=document)=>ctx.querySelector(sel);
+    const $$ = (sel,ctx=document)=>Array.from(ctx.querySelectorAll(sel));
 
-    let rawRows = [];      // array of arrays
-    let headers = [];      // header labels
-    let filteredIdx = [];  // indices after search
-    let page = 1;
+    function escapeHTML(s){
+      return String(s)
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;');
+    }
 
-    function autoDelimiter(text){
-      if (delimiterSel.value !== 'auto') return delimiterSel.value==='tab'?'\\t':delimiterSel.value;
-      const candidates = [',',';','\\t','|'];
-      let best = ',', bestScore = -1;
-      for (const d of candidates){
-        const lines = text.split(/\\r?\\n/).slice(0, 30).filter(Boolean);
-        const counts = lines.map(l => splitCSVLine(l,d).length);
-        const mean = counts.reduce((a,b)=>a+b,0)/Math.max(counts.length,1);
-        const varc = counts.reduce((a,b)=>a+(b-mean)*(b-mean),0)/Math.max(counts.length,1);
-        const score = mean - varc*0.1;
-        if (score>bestScore){bestScore=score; best=d;}
+    // Detect delimiter from first 10 non-empty lines
+    function detectDelimiter(text){
+      const candidates = [',',';','\t','|'];
+      const lines = text.split(/\r?\n/).filter(x=>x.trim()).slice(0, 10);
+      let best = ',', bestScore = -1, bestCols = 0;
+
+      for(const d of candidates){
+        let total=0, colsMode=0;
+        const counts = [];
+        for(const ln of lines){
+          // naive split excluding quoted for estimation
+          const cnt = ln.split(d).length - 1;
+          counts.push(cnt);
+          total += cnt;
+        }
+        // Score = average and consistency
+        const avg = total / Math.max(1, lines.length);
+        const uniq = new Set(counts).size;
+        const score = avg - (uniq-1)*0.3;
+        if(score > bestScore){
+          bestScore = score;
+          best = d;
+          // estimate columns by splitting first line on delimiter but respecting quotes quickly
+          const c = naiveCountCols(lines[0], d);
+          bestCols = c;
+        }
       }
       return best;
     }
 
-    function splitCSVLine(line, delim){
-      // CSV-safe splitter (quotes + escaped quotes)
-      const d = delim==='\\t'?'\\t':delim;
-      const out=[]; let cur=''; let inQ=false;
-      for (let i=0;i<line.length;i++){
-        const ch=line[i], next=line[i+1];
-        if (ch==='\"'){
-          if (inQ && next==='\"'){ cur+='\"'; i++; }
-          else { inQ = !inQ; }
-        } else if (!inQ && ch===d){ out.push(cur); cur=''; }
-        else { cur+=ch; }
+    function naiveCountCols(line, d){
+      // rough count ignoring escaped quotes
+      let inQ=false, cols=1;
+      for(let i=0;i<line.length;i++){
+        const ch=line[i];
+        if(ch === '"'){
+          if(inQ && line[i+1]==='"'){ i++; } else inQ = !inQ;
+        }else if(ch === d && !inQ){ cols++; }
       }
-      out.push(cur);
-      return out;
+      return cols;
     }
 
-    function parseCSV(text){
-      const delim = autoDelimiter(text);
-      const lines = text.replace(/\\r/g,'').split('\\n').filter(l=>l.length>0);
-      const rows = lines.map(l => splitCSVLine(l, delim).map(v=>v.trim()));
-      return {rows, delim};
+    // Robust CSV parser (RFC4180-ish)
+    function parseCSV(text, delimiter='auto'){
+      if(delimiter==='auto') delimiter = detectDelimiter(text);
+
+      const rows = [];
+      let row = [], field = '';
+      let i=0, inQ=false, ch, next;
+
+      function pushField(){ row.push(field); field=''; }
+      function pushRow(){ rows.push(row); row=[]; }
+
+      while(i < text.length){
+        ch = text[i];
+
+        if(inQ){
+          if(ch === '"'){
+            next = text[i+1];
+            if(next === '"'){ field+='"'; i+=2; continue; } // escaped quote
+            else { inQ=false; i++; continue; }
+          }else{
+            field += ch; i++; continue;
+          }
+        }else{
+          if(ch === '"'){ inQ=true; i++; continue; }
+          if(ch === delimiter){ pushField(); i++; continue; }
+          if(ch === '\n'){
+            pushField(); pushRow(); i++; continue;
+          }
+          if(ch === '\r'){
+            // handle \r\n
+            if(text[i+1]==='\n'){ i+=2; pushField(); pushRow(); continue; }
+            // lone \r as newline
+            pushField(); pushRow(); i++; continue;
+          }
+          field += ch; i++;
+        }
+      }
+      // flush last field/row
+      pushField();
+      pushRow();
+
+      // remove possible final empty row (when text ended with newline)
+      if(rows.length && rows[rows.length-1].length===1 && rows[rows.length-1][0]===''){
+        rows.pop();
+      }
+      return { rows, delimiter };
     }
 
-    function render(){
-      const ps = parseInt(pageSizeSel.value,10);
-      const total = filteredIdx.length;
-      const totalPages = Math.max(1, Math.ceil(total/ps));
-      if (page>totalPages) page = totalPages;
-
-      // header
-      thead.innerHTML='';
-      if (headers.length){
-        const tr = document.createElement('tr');
-        headers.forEach(h=>{
-          const th=document.createElement('th');
-          th.textContent=h;
-          tr.appendChild(th);
-        });
-        thead.appendChild(tr);
-      }
-
-      // body
-      tbody.innerHTML='';
-      const start = (page-1)*ps, end = Math.min(start+ps, total);
-      for (let i=start; i<end; i++){
-        const r = rawRows[filteredIdx[i]];
-        const tr = document.createElement('tr');
-        r.forEach(c=>{
-          const td=document.createElement('td');
-          td.textContent=c;
-          tr.appendChild(td);
-        });
-        tbody.appendChild(tr);
-      }
-
-      pageInfo.textContent = total? (page+' / '+totalPages) : '0 / 0';
-      summary.textContent = total
-        ? \`แสดงแถวที่ \${start+1}-\${end} จากทั้งหมด \${total} แถว | คอลัมน์ \${headers.length}\`
-        : 'ไม่มีข้อมูลสำหรับเงื่อนไขนี้';
+    function toCSV(rows, delimiter=','){
+      const esc = v => {
+        v = v==null ? '' : String(v);
+        const needQuote = v.includes('"') || v.includes('\n') || v.includes('\r') || v.includes(delimiter);
+        if(needQuote){
+          return '"' + v.replace(/"/g,'""') + '"';
+        }
+        return v;
+      };
+      return rows.map(r=>r.map(esc).join(delimiter)).join('\r\n');
     }
 
-    function applySearch(){
-      const q = (searchBox.value||'').toLowerCase();
-      if (!q){ filteredIdx = rawRows.map((_,i)=>i); return; }
-      filteredIdx = [];
-      for (let i=0;i<rawRows.length;i++){
-        const r = rawRows[i];
-        if (r.some(v => (v||'').toLowerCase().includes(q))) filteredIdx.push(i);
-      }
-    }
+    // --------- State ----------
+    let allRows = [];       // raw rows (includes header if present)
+    let header = [];        // header array
+    let dataRows = [];      // rows without header
+    let delimiter = 'auto';
+    let hasHeader = true;
+    let page = 1;
+    let rowsPerPage = 25;
+    let sortIdx = -1;
+    let sortDir = 1; // 1=asc, -1=desc
+    let searchQ = '';
 
-    function setData(allRows){
-      headers = [];
-      rawRows = [];
-      if (allRows.length===0){ filteredIdx=[]; render(); return; }
+    // --------- DOM refs ----------
+    const thead = $('#thead');
+    const tbody = $('#tbody');
+    const kRows = $('#kRows');
+    const kCols = $('#kCols');
+    const kSort = $('#kSort');
 
-      if (hasHeader.checked){
-        headers = allRows[0];
-        rawRows = allRows.slice(1);
+    // --------- Render ----------
+    function applyHeader(){
+      if(!allRows.length){ header=[]; dataRows=[]; return; }
+      if(hasHeader){
+        header = allRows[0];
+        dataRows = allRows.slice(1);
       }else{
-        const width = Math.max(...allRows.map(r=>r.length));
-        headers = Array.from({length:width}, (_,i)=>'col'+(i+1));
-        rawRows = allRows;
+        // synth header
+        const maxCol = Math.max(...allRows.map(r=>r.length));
+        header = Array.from({length:maxCol}, (_,i)=>'col_'+(i+1));
+        dataRows = allRows;
       }
-      applySearch();
+    }
+
+    function setData(rows){
+      allRows = rows;
+      applyHeader();
       page = 1;
+      sortIdx = -1;
+      sortDir = 1;
       render();
     }
 
-    // event wiring
-    searchBox.addEventListener('input', ()=>{ applySearch(); page=1; render(); });
-    pageSizeSel.addEventListener('change', ()=>{ page=1; render(); });
-    hasHeader.addEventListener('change', ()=>{ // re-derive headers/content
-      // recompute using current raw + headers from source (we need original allRows)
-      if (window.__lastAllRows){ setData(window.__lastAllRows); }
-    });
-    prevBtn.addEventListener('click', ()=>{ if (page>1){ page--; render(); } });
-    nextBtn.addEventListener('click', ()=>{ const ps=parseInt(pageSizeSel.value,10); const total=filteredIdx.length; const tp=Math.max(1,Math.ceil(total/ps)); if (page<tp){ page++; render(); } });
+    function filteredRows(){
+      if(!searchQ) return dataRows;
+      const q = searchQ.toLowerCase();
+      return dataRows.filter(r=>r.some(c=>String(c).toLowerCase().includes(q)));
+    }
 
-    // loaders
-    $('#csvFileInput').addEventListener('change', async (e)=>{
+    function sortedRows(rows){
+      if(sortIdx<0) return rows;
+      const collator = new Intl.Collator(undefined, {numeric:true, sensitivity:'base'});
+      return [...rows].sort((a,b)=>{
+        const A = a[sortIdx] ?? '';
+        const B = b[sortIdx] ?? '';
+        return collator.compare(A, B) * sortDir;
+      });
+    }
+
+    function pagedRows(rows){
+      if(rowsPerPage===0) return rows;
+      const start = (page-1)*rowsPerPage;
+      return rows.slice(start, start+rowsPerPage);
+    }
+
+    function render(){
+      applyHeader();
+      const fr = filteredRows();
+      const sr = sortedRows(fr);
+      const pr = pagedRows(sr);
+
+      // KPIs
+      kRows.textContent = fr.length.toLocaleString();
+      kCols.textContent = header.length.toLocaleString();
+      kSort.textContent = sortIdx<0 ? '—' : `${header[sortIdx] || ('col_'+(sortIdx+1))} (${sortDir>0?'↑':'↓'})`;
+
+      // thead
+      thead.innerHTML = '';
+      const trh = document.createElement('tr');
+      header.forEach((h,idx)=>{
+        const th = document.createElement('th');
+        const wrap = document.createElement('span');
+        wrap.className = 'th-sort';
+        const label = document.createElement('span');
+        label.textContent = h ?? ('col_'+(idx+1));
+        const arrowUp = document.createElement('span');
+        arrowUp.className = 'arrow' + ((sortIdx===idx && sortDir>0)?' active':'');
+        arrowUp.textContent = '▲';
+        const arrowDn = document.createElement('span');
+        arrowDn.className = 'arrow' + ((sortIdx===idx && sortDir<0)?' active':'');
+        arrowDn.textContent = '▼';
+        wrap.append(label, arrowUp, arrowDn);
+        th.appendChild(wrap);
+        th.title = 'คลิกเพื่อเรียง';
+        th.addEventListener('click', ()=>{
+          if(sortIdx===idx){ sortDir*=-1; } else { sortIdx=idx; sortDir=1; }
+          render();
+        });
+        trh.appendChild(th);
+      });
+      thead.appendChild(trh);
+
+      // tbody
+      tbody.innerHTML = '';
+      const frag = document.createDocumentFragment();
+      pr.forEach(r=>{
+        const tr = document.createElement('tr');
+        for(let i=0;i<header.length;i++){
+          const td = document.createElement('td');
+          td.innerHTML = escapeHTML(r[i] ?? '');
+          tr.appendChild(td);
+        }
+        frag.appendChild(tr);
+      });
+      tbody.appendChild(frag);
+
+      // pagination
+      const total = filteredRows().length;
+      const totalPages = rowsPerPage===0 ? 1 : Math.max(1, Math.ceil(total / rowsPerPage));
+      $('#pageNow').textContent = page;
+      $('#pageTotal').textContent = totalPages;
+      $('#prevBtn').disabled = page<=1;
+      $('#nextBtn').disabled = page>=totalPages;
+    }
+
+    // --------- Events ----------
+    $('#search').addEventListener('input', (e)=>{ searchQ = e.target.value; page=1; render(); });
+    $('#rowsPerPage').addEventListener('change', (e)=>{ rowsPerPage = Number(e.target.value); page=1; render(); });
+    $('#delimiter').addEventListener('change', (e)=>{
+      delimiter = e.target.value;
+      // re-parse using selected delimiter (if we have a source text)
+      if(window.__lastText){
+        const parsed = parseCSV(window.__lastText, delimiter);
+        allRows = parsed.rows;
+        applyHeader();
+        render();
+      }
+    });
+    $('#hasHeader').addEventListener('change', (e)=>{ hasHeader = e.target.value==='1'; page=1; render(); });
+
+    $('#prevBtn').addEventListener('click', ()=>{ page=Math.max(1,page-1); render(); });
+    $('#nextBtn').addEventListener('click', ()=>{
+      const total = filteredRows().length;
+      const totalPages = rowsPerPage===0 ? 1 : Math.max(1, Math.ceil(total / rowsPerPage));
+      page=Math.min(totalPages,page+1); render();
+    });
+
+    $('#downloadBtn').addEventListener('click', ()=>{
+      const fr = filteredRows();
+      const sr = sortedRows(fr);
+      const rowsOut = hasHeader ? [header, ...sr] : sr;
+      const csv = toCSV(rowsOut, delimiter==='auto' ? ',' : delimiter);
+      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'export.csv';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    });
+
+    $('#fileInput').addEventListener('change', async (e)=>{
       const f = e.target.files?.[0];
-      if (!f) return;
+      if(!f) return;
       const text = await f.text();
-      const {rows} = parseCSV(text);
-      window.__lastAllRows = rows;
-      setData(rows);
+      window.__lastText = text;
+      const parsed = parseCSV(text, delimiter);
+      setData(parsed.rows);
+      $('#msg').innerHTML = `<div class="ok">โหลดไฟล์: <b>${escapeHTML(f.name)}</b> สำเร็จ</div>`;
     });
 
-    $('#loadTextBtn').addEventListener('click', ()=>{
-      const text = $('#csvText').value||'';
-      if (!text.trim()) return;
-      const {rows} = parseCSV(text);
-      window.__lastAllRows = rows;
-      setData(rows);
+    $('#loadPasteBtn').addEventListener('click', ()=>{
+      const text = $('#pasteArea').value || '';
+      if(!text.trim()){ $('#msg').innerHTML = `<div class="error">กรุณาวางข้อความ CSV ก่อน</div>`; return; }
+      window.__lastText = text;
+      const parsed = parseCSV(text, delimiter);
+      setData(parsed.rows);
+      $('#msg').innerHTML = `<div class="ok">โหลดจากข้อความสำเร็จ</div>`;
     });
+    $('#clearPasteBtn').addEventListener('click', ()=>{ $('#pasteArea').value=''; });
 
     $('#loadUrlBtn').addEventListener('click', async ()=>{
-      const url = $('#csvUrl').value.trim();
-      if (!url) return;
+      const url = $('#urlInput').value.trim();
+      if(!url){ $('#msg').innerHTML = `<div class="error">กรุณาใส่ URL ก่อน</div>`; return; }
       try{
-        const res = await fetch(url);
+        const res = await fetch(url, {mode:'cors'});
+        if(!res.ok) throw new Error('HTTP '+res.status);
         const text = await res.text();
-        const {rows} = parseCSV(text);
-        window.__lastAllRows = rows;
-        setData(rows);
+        window.__lastText = text;
+        const parsed = parseCSV(text, delimiter);
+        setData(parsed.rows);
+        $('#msg').innerHTML = `<div class="ok">โหลดจาก URL สำเร็จ</div>`;
       }catch(err){
-        alert('ไม่สามารถโหลด CSV จาก URL นี้ได้ (อาจติด CORS)'); 
+        $('#msg').innerHTML = `<div class="error">โหลด URL ไม่ได้ (อาจติด CORS หรือ URL ไม่ถูกต้อง)</div>`;
       }
     });
 
     $('#loadSampleBtn').addEventListener('click', async ()=>{
       try{
         const res = await fetch('salesdata_missing4.csv');
-        if (!res.ok) throw new Error();
+        if(!res.ok) throw new Error('not ok');
         const text = await res.text();
-        const {rows} = parseCSV(text);
-        window.__lastAllRows = rows;
-        setData(rows);
+        window.__lastText = text;
+        const parsed = parseCSV(text, delimiter);
+        setData(parsed.rows);
+        $('#msg').innerHTML = `<div class="ok">โหลดไฟล์ตัวอย่าง salesdata_missing4.csv สำเร็จ</div>`;
       }catch(err){
-        alert('ไม่พบไฟล์ salesdata_missing4.csv อยู่ข้างหน้าเว็บ หรือโหลดไม่ได้');
+        $('#msg').innerHTML = `<div class="error">ไม่พบไฟล์ salesdata_missing4.csv ในโฟลเดอร์เดียวกัน หรือโหลดไม่ได้</div>`;
       }
     });
 
+    // --------- Boot with empty table ----------
+    setData([]);
   })();
   </script>
 </body>
