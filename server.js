@@ -1,9 +1,11 @@
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const express = require('express');
 const session = require('express-session');
 const SQLiteStoreFactory = require('connect-sqlite3');
 const bcrypt = require('bcryptjs');
+const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 const {
@@ -39,23 +41,45 @@ if (process.env.NODE_ENV === 'production') {
 app.use(express.json({ limit: '8mb' }));
 app.use(express.urlencoded({ extended: true, limit: '8mb' }));
 
+const SESSION_SECRET = process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex');
+if (!process.env.SESSION_SECRET) {
+  console.warn('⚠️  SESSION_SECRET is not set. Using a random secret for this run.');
+}
+
 app.use(session({
   store: new SQLiteStore({
     dir: dataDir,
     db: 'sessions.sqlite',
   }),
-  secret: process.env.SESSION_SECRET || 'dev_secret_change_me',
+  secret: SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {
-    maxAge: 1000*60*60*24*14, // 14 วัน
+    maxAge: 1000 * 60 * 60 * 24 * 14, // 14 วัน
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production' // ใช้ secure cookie เมื่อโปรดักชัน
   }
 }));
 
-// static
-app.use(express.static(path.join(__dirname, 'public')));
+const publicDir = path.join(__dirname, 'public');
+if (!fs.existsSync(publicDir)) fs.mkdirSync(publicDir, { recursive: true });
+app.use(express.static(publicDir));
+
+// Basic CSRF protection: block cross-origin POST/PUT/DELETE
+app.use((req, res, next) => {
+  const safeMethods = ['GET', 'HEAD', 'OPTIONS'];
+  if (safeMethods.includes(req.method)) return next();
+  const origin = req.get('Origin') || req.get('Referer');
+  if (origin) {
+    try {
+      const { host } = new URL(origin);
+      if (host !== req.get('Host')) return res.status(403).json({ error: 'csrf_violation' });
+    } catch {
+      return res.status(403).json({ error: 'csrf_violation' });
+    }
+  }
+  next();
+});
 
 // helpers
 function requireAuth(req, res, next){
@@ -63,18 +87,26 @@ function requireAuth(req, res, next){
   next();
 }
 
+const authLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
 // ---------- Auth APIs ----------
-app.post('/api/register', async (req, res)=>{
+app.post('/api/register', authLimiter, async (req, res)=>{
   try{
     const { name, email, password } = req.body || {};
     if(!name || !email || !password) return res.status(400).json({ error: 'missing_fields' });
     if(String(password).length < 6) return res.status(400).json({ error: 'weak_password' });
 
-    const exists = await getUserByEmail(email);
+    const lowerEmail = String(email).toLowerCase();
+    const exists = await getUserByEmail(lowerEmail);
     if(exists) return res.status(409).json({ error: 'email_taken' });
 
     const hash = await bcrypt.hash(String(password), 10);
-    const userId = await createUser({ name, email, password_hash: hash });
+    const userId = await createUser({ name, email: lowerEmail, password_hash: hash });
     await ensureDefaultScaleForUser(userId);
 
     // regenerate session เพื่อกัน fixation และให้แน่ใจว่าคุกกี้ถูกเซ็ต
@@ -83,7 +115,7 @@ app.post('/api/register', async (req, res)=>{
       req.session.userId = userId;
       req.session.save(err2=>{
         if(err2){ console.error(err2); return res.status(500).json({ error: 'server_error' }); }
-        res.json({ ok: true, user: { id: userId, name, email } });
+        res.json({ ok: true, user: { id: userId, name, email: lowerEmail } });
       });
     });
   }catch(e){
@@ -92,11 +124,12 @@ app.post('/api/register', async (req, res)=>{
   }
 });
 
-app.post('/api/login', async (req, res)=>{
+app.post('/api/login', authLimiter, async (req, res)=>{
   try{
     const { email, password } = req.body || {};
     if(!email || !password) return res.status(400).json({ error: 'missing_fields' });
-    const user = await getUserByEmail(email);
+    const lowerEmail = String(email).toLowerCase();
+    const user = await getUserByEmail(lowerEmail);
     if(!user) return res.status(401).json({ error: 'invalid_credentials' });
 
     const ok = await bcrypt.compare(String(password), user.password_hash);
@@ -169,6 +202,7 @@ app.post('/api/scales/:id/points', requireAuth, async (req, res)=>{
     await addScalePoint(req.session.userId, scaleId, color.toUpperCase(), value);
     res.json({ ok: true });
   }catch(e){
+    if(e && e.message === 'not_found') return res.status(404).json({ error: 'not_found' });
     console.error(e);
     res.status(500).json({ error: 'server_error' });
   }
@@ -179,6 +213,7 @@ app.delete('/api/scales/:id', requireAuth, async (req, res)=>{
     await deleteScale(req.session.userId, Number(req.params.id));
     res.json({ ok: true });
   }catch(e){
+    if(e && e.message === 'not_found') return res.status(404).json({ error: 'not_found' });
     console.error(e);
     res.status(500).json({ error: 'server_error' });
   }
@@ -189,6 +224,7 @@ app.delete('/api/scales/:id/points', requireAuth, async (req, res)=>{
     await clearScalePoints(req.session.userId, Number(req.params.id));
     res.json({ ok: true });
   }catch(e){
+    if(e && e.message === 'not_found') return res.status(404).json({ error: 'not_found' });
     console.error(e);
     res.status(500).json({ error: 'server_error' });
   }
@@ -233,7 +269,7 @@ app.delete('/api/results', requireAuth, async (req, res)=>{
 
 // fallback to index.html (GET เท่านั้น)
 app.get('*', (req, res)=>{
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(publicDir, 'index.html'));
 });
 
 // start

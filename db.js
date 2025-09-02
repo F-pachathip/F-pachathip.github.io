@@ -83,11 +83,11 @@ const dbReady = (async ()=>{
 async function createUser({ name, email, password_hash }){
   const now = Date.now();
   const r = await run(`INSERT INTO users(name, email, password_hash, created_at) VALUES(?,?,?,?)`,
-    [name, email, password_hash, now]);
+    [name, email.toLowerCase(), password_hash, now]);
   return r.lastID;
 }
 function getUserByEmail(email){
-  return get(`SELECT * FROM users WHERE email=?`, [email]);
+  return get(`SELECT * FROM users WHERE email=?`, [String(email).toLowerCase()]);
 }
 function getUserById(id){
   return get(`SELECT id,name,email FROM users WHERE id=?`, [id]);
