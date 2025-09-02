@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>AI Color & Nitrate Detector - Home</title>
 
-  <!-- ฟอนต์ไทย/อังกฤษ + ไอคอน -->
+  <!-- Fonts & Icons -->
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" rel="stylesheet"/>
 
-  <!-- Critical fallback (เอาออกอัตโนมัติเมื่อ style.css โหลดสำเร็จ) -->
+  <!-- Critical fallback (removed after main css loads) -->
   <style id="critical-style">
     *{box-sizing:border-box} html,body{margin:0}
     body{font-family:'Kanit',system-ui,Arial,sans-serif;background:#0b1220;color:#e7eaf1}
@@ -17,7 +17,7 @@
     .content{padding:24px}
   </style>
 
-  <!-- สไตล์หลัก (มี cache-busting และ auto-fallback path) -->
+  <!-- Main style with cache-busting & auto-fallback path -->
   <link id="site-style" rel="stylesheet" href="./style.css?v=20250901">
   <script>
     (function(){const link=document.getElementById('site-style');const crit=document.getElementById('critical-style');
@@ -46,7 +46,7 @@
       <li><a class="active-link" href="index.html"><span class="material-symbols-rounded">home</span> Home</a></li>
       <li><a href="analysis.html"><span class="material-symbols-rounded">colorize</span> Analysis</a></li>
       <li><a href="reports.html"><span class="material-symbols-rounded">analytics</span> Reports</a></li>
-      <li><a href="csv.html"><span class="material-symbols-rounded">table_view</span> CSV</a></li>
+      <li><a href="csv.html"><span class="material-symbols-rounded">table_chart</span> CSV</a></li>
     </ul>
 
     <div class="lang">

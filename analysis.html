@@ -37,7 +37,7 @@
       <li><a href="index.html"><span class="material-symbols-rounded">home</span> Home</a></li>
       <li><a class="active-link" href="analysis.html"><span class="material-symbols-rounded">colorize</span> Analysis</a></li>
       <li><a href="reports.html"><span class="material-symbols-rounded">analytics</span> Reports</a></li>
-      <li><a href="csv.html"><span class="material-symbols-rounded">table_view</span> CSV</a></li>
+      <li><a href="csv.html"><span class="material-symbols-rounded">table_chart</span> CSV</a></li>
     </ul>
 
     <div class="lang">
@@ -51,9 +51,7 @@
 
   <main class="content container">
     <section class="card">
-      <h2 id="analysisTitle" class="section-title">
-        Analyze a Sample
-      </h2>
+      <h2 id="analysisTitle" class="section-title">Analyze a Sample</h2>
       <p id="analysisDesc" class="muted">
         Upload an image or capture from camera. Then enter the reagent and scale. Choose ROI and sampling resolution. We'll detect the dominant color and estimate nitrate level.
       </p>
@@ -132,39 +130,7 @@
     &copy; <span id="currentYear"></span> AI Color & Nitrate Detector. All Rights Reserved.
   </footer>
 
-  <!-- Scale Manager Modal -->
-  <div class="modal-backdrop" id="scaleModalBackdrop" style="display:none;">
-    <div class="modal">
-      <div class="modal-header">
-        <h3><span class="material-symbols-rounded">tune</span> Manage Scales</h3>
-        <button id="closeScaleModal" class="icon-btn" title="Close">✕</button>
-      </div>
-      <div class="modal-body">
-        <p><strong>Built-in scales</strong> cannot be edited. Add <em>Custom Scales</em> below (JSON หรือ CSV):</p>
-        <ul class="mono">
-          <li>JSON: [{ "ppm": 0, "hex": "#FFF86A" }, { "ppm": 10, "hex": "#FFD24D" }, ...]</li>
-          <li>CSV: ppm,hex เช่น <code>0,#FFF86A</code></li>
-        </ul>
-        <div class="form-row">
-          <label for="customScaleName">Scale name</label>
-          <input id="customScaleName" placeholder="e.g. My Griess Scale">
-        </div>
-        <div class="form-row">
-          <label for="customScaleText">Data</label>
-          <textarea id="customScaleText" rows="6" placeholder='[{"ppm":0,"hex":"#FFF86A"},{"ppm":10,"hex":"#FFD24D"}]'></textarea>
-        </div>
-        <div class="form-row">
-          <button id="addScaleBtn" class="btn btn-primary">Add / Replace</button>
-          <button id="exportScalesBtn" class="btn btn-outline">Export</button>
-          <button id="deleteScaleBtn" class="btn btn-danger">Delete</button>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button id="closeScaleModal2" class="btn">Close</button>
-      </div>
-    </div>
-  </div>
-
+  <!-- (วางสคริปต์อื่นๆ ของคุณได้) -->
   <script src="script.js"></script>
 </body>
 </html>
