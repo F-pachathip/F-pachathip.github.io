@@ -61,9 +61,8 @@ app.use(session({
   }
 }));
 
-const publicDir = path.join(__dirname, 'public');
-if (!fs.existsSync(publicDir)) fs.mkdirSync(publicDir, { recursive: true });
-app.use(express.static(publicDir));
+// Serve static files from project root (HTML/CSS/JS located alongside server.js)
+app.use(express.static(__dirname));
 
 // Basic CSRF protection: block cross-origin POST/PUT/DELETE
 app.use((req, res, next) => {
@@ -269,7 +268,7 @@ app.delete('/api/results', requireAuth, async (req, res)=>{
 
 // fallback to index.html (GET เท่านั้น)
 app.get('*', (req, res)=>{
-  res.sendFile(path.join(publicDir, 'index.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // start
